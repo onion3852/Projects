@@ -3,3 +3,5 @@
 - 16 bit / non-pipelined / 폰 노이만 구조
 - Mano CPU
 - [Computer System Architecture] by M. Morris Mano
+
+- Control Unit을 포함한 구조로 개선 중
