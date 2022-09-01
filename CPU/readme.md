@@ -4,4 +4,4 @@
 - Mano CPU
 - [Computer System Architecture] by M. Morris Mano
 
-- Control Unit을 포함한 구조로 개선 중
+- DataPath와 Control Unit으로 구성된 구조로 개선 중
