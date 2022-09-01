@@ -1,12 +1,20 @@
 `timescale 1ns / 1ps
 
-module cpu(clk, reset, data_in, addr, we, data_out);
+module cpu(
+    input        clk, 
+    input        reset_n, 
+    input [15:0] i_data, 
 
-input clk, reset;
-input [15:0] data_in;        // data from sram to cpu
-output reg [15:0] data_out;  // data from cpu to sram
-output reg [11:0] addr;      // sram's address
-output reg we;               // sram control signal (write enable)
+    output [11:0] o_addr, 
+    output [15:0] o_data,
+    output we
+    );
+
+// parameter DWIDTH 16;
+
+reg [11:0] r_addr;
+reg [15:0] r_data;
+reg        r_we;
 
 reg [15:0] IR,
            DR,
@@ -46,8 +54,8 @@ always @ (posedge clk) begin
 end
 
 // Reset
-always @ (negedge reset) begin          
-    if(!reset) begin
+always @ (negedge reset_n) begin          
+    if(!reset_n) begin
         IR <= 16'b0;
         DR <= 16'b0;
         AC <= 16'b0;
@@ -69,9 +77,9 @@ end
 always @ (posedge clk) begin
     if(T[1]) begin
         we <= 1'b1;
-        addr <= AR;
+        o_addr <= AR;
         #2  
-        IR <= data_in;
+        IR <= i_data;
         PC <= PC + 1;
     end
 end
@@ -124,9 +132,9 @@ always @ (posedge clk) begin
     // memory reference instruction (indirect addressing mode)
     else if(!D[7] && I && T[3]) begin   // AR <= M[AR]
         we <= 1'b1;
-        addr <= AR;
+        o_addr <= AR;
         #2
-        AR <= data_in;
+        AR <= i_data;
     end
 end
 
@@ -137,20 +145,20 @@ always @ (posedge clk) begin
         case(IR[14:12])
             3'h1 : begin     // ADD (DR <= M[AR])
                    we <= 1'b1;
-                   addr <= AR;
+                   o_addr <= AR;
                    #2
-                   DR <= data_in;
+                   DR <= i_data;
                    end
             3'h2 : begin     // LDA (DR <= M[AR])
                    we <= 1'b1;
-                   addr <= AR;
+                   o_addr <= AR;
                    #2
-                   DR <= data_in;
+                   DR <= i_data;
                    end
             3'h3 : begin     // STA (M[AR] <= AC)
                    we <= 1'b0;
-                   addr <= AR;
-                   data_out <= AC;
+                   o_addr <= AR;
+                   o_data <= AC;
                    SC <= 4'b0;
                    end 
             3'h4 : begin     // BUN (PC <= AR)
@@ -159,9 +167,9 @@ always @ (posedge clk) begin
                    end   
             3'h6 : begin     // ISZ (DR <= M[AR])
                    we <= 1'b1;
-                   addr <= AR;
+                   o_addr <= AR;
                    #2
-                   DR <= data_in;
+                   DR <= i_data;
                    end
         endcase
     end
@@ -192,8 +200,8 @@ always @ (posedge clk) begin
         case(IR[14:12])
             3'h6 : begin     // ISZ (M[AR] <= DR)
                    we <= 1'b0;
-                   addr <= AR;
-                   data_out <= DR;
+                   o_addr <= AR;
+                   o_data <= DR;
                    SC <= 4'b0;
                    
                    if(DR == 16'b0)
@@ -202,5 +210,9 @@ always @ (posedge clk) begin
         endcase
     end
 end
+
+assign o_addr = r_addr;
+assign o_data = r_data;
+assign o_we   = r_we;
 
 endmodule

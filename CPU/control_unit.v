@@ -30,12 +30,11 @@ module control_unit(
     output       o_is_idle
     );
 
-parameter IDLE    0;
-parameter READ    1;
-parameter WRITE   2;
-parameter BRANCH  3;
-parameter REG_REF 4;
-parameter MEM_REF 5;
+localparam REG_REF = 2'b0;
+localparam MEM_REF = 2'b1;
+localparam IDLE    = 2'b2;
+reg [1:0] c_state;
+reg [1:0] n_state;
 
 reg r_read;
 reg r_write;
@@ -61,7 +60,31 @@ reg r_isz;
 
 reg r_is_idle;
 
+// state transition
+always @ (posedge clk or negedge reset_n) begin
+    if(!reset_n) begin
+        c_state <= IDLE;
+    end
+    else begin
+        c_state <= n_state;
+    end
+end
 
+// computing n_state(next state)
+always @ (*) begin
+    if(r_is_idle) begin
+        n_state = IDLE;
+    end
+    else if(r_mem_ref) begin
+        n_state = MEM_REF;
+    end
+    else if(r_reg_ref) begin
+        n_state = REG_REF;
+    end
+    else begin
+        n_state = IDLE;
+    end
+end
 
 // making control signal using ir signal
 always @ (posedge clk or negedge reset_n) begin
@@ -126,7 +149,14 @@ assign o_isz      = r_isz;
 
 assign o_is_idle = r_is_idle;
 
-endmodule
+// output logic
+always @ (*) begin
+    case(c_state)
 
+    endcase
+end
+
+
+endmodule
 
 // non pipeline상태임을 기억하고 작성하자
