@@ -3,13 +3,14 @@
 module control_unit(
     input        clk,
     input        reset_n,
+    input        i_run,
+    input        i_ex_done,
     input [15:0] ir,
 
     output       o_read,
     output       o_write,
     output       o_we,
 
-    output       o_reg_ref,
     output       o_clr_sc,
     output       o_clr_ac,
     output       o_clr_e,
@@ -19,7 +20,6 @@ module control_unit(
     output       o_cir_l,
     output       o_inc_ac,
 
-    output       o_mem_ref,
     output       o_ind_addr,
     output       o_add,
     output       o_load,
@@ -27,20 +27,31 @@ module control_unit(
     output       o_branch,
     output       o_isz,
 
-    output       o_is_idle
+    output       o_clr_pc,
+    output       o_fetch
     );
 
-localparam REG_REF = 2'b0;
-localparam MEM_REF = 2'b1;
-localparam IDLE    = 2'b2;
-reg [1:0] c_state;
-reg [1:0] n_state;
+// state for FSM
+localparam IDLE        = 3'b0;
+localparam FETCH       = 3'b1;
+localparam REG_REF     = 3'b2;
+localparam MEM_REF_IND = 3'b3;  // indirect addressing
+localparam MEM_REF     = 3'b4;
+localparam DONE        = 3'b5;
+reg [2:0] c_state;
+reg [2:0] n_state;
+
+wire is_ind;     // triggering MEM_REF_IND
+wire is_mem_ref  // triggering MEM_REF
+wire is_reg_ref  // triggering REG_REF
+wire is_done     // triggering DONE
+wire is_fetch    // triggering FETCH
 
 reg r_read;
 reg r_write;
 reg r_we;
 
-reg r_reg_ref;
+reg w_reg_ref;
 reg r_clr_sc;
 reg r_clr_ac;
 reg r_clr_e;
@@ -50,15 +61,16 @@ reg r_cir_r;
 reg r_cir_l;
 reg r_inc_ac;
 
-reg r_mem_ref;
-reg r_ind_addr;
+reg w_mem_ref;
+reg w_ind_addr;
 reg r_add;
 reg r_load;
 reg r_store;
 reg r_branch;
 reg r_isz;
 
-reg r_is_idle;
+reg r_clr_pc;
+reg r_fetch;
 
 // state transition
 always @ (posedge clk or negedge reset_n) begin
@@ -72,34 +84,45 @@ end
 
 // computing n_state(next state)
 always @ (*) begin
-    if(r_is_idle) begin
-        n_state = IDLE;
+    if(is_fetch) begin
+        n_state = FETCH;
     end
-    else if(r_mem_ref) begin
+    else if(is_ind) begin
+        n_state = MEM_REF_IND;
+    end
+    else if(is_mem_ref) begin
         n_state = MEM_REF;
     end
-    else if(r_reg_ref) begin
+    else if(is_reg_ref) begin
         n_state = REG_REF;
+    end
+    else if(is_done) begin
+        n_state = DONE;
     end
     else begin
         n_state = IDLE;
     end
 end
 
-// making control signal using ir signal
-always @ (posedge clk or negedge reset_n) begin
-    if(!reset_n) begin
-        r_is_idle <= 1'b1;   // clear Registers
-    end
-    else if(ir[15]) begin   // indirect addressing mode 
-                            // memory-reference
-        r_mem_ref  <= 1'b1;
-        r_ind_addr <= 1'b1;
+// triggering signals
+assign is_fetch   = (c_state == DONE);
+assign is_ind     = (c_state == FETCH) && (w_ind_addr);
+assign is_mem_ref = (c_state == MEM_REF_IND) && (w_mem_ref);
+assign is_reg_ref = (c_state == FETCH) && (w_reg_ref);
+assign is_done    = ( (c_state == REG_REF) && (i_ex_done) ) ||
+                    ( (c_state == MEM_REF) && (i_ex_done) );
+
+
+// internal control signal by decoding ir[15:0]
+always @ (*) begin
+    if(ir[15]) begin   // indirect addressing mode 
+                       // memory-reference
+        w_ind_addr <= 1'b1;
         r_read     <= 1'b1;
     end
     else if(!ir[15] && (ir[14:12] != 3'd7)) begin  // direct addresing mode
                                                    // memory-reference
-        r_mem_ref <= 1'b1;
+        w_mem_ref <= 1'b1;
         r_read    <= 1'b1;
 
         case(ir[14:12])
@@ -111,7 +134,7 @@ always @ (posedge clk or negedge reset_n) begin
         endcase
     end
     else if(!ir[15] && (ir[14:12] == 3'd7)) begin  // register-reference
-        r_reg_ref <= 1'b1;
+        w_reg_ref <= 1'b1;
         r_clr_sc  <= 1'b1;
 
         casex(ir[11:0])
@@ -130,7 +153,6 @@ assign o_read    = r_read;
 assign o_write   = r_write;
 assign o_we      = r_we;
 
-assign o_reg_ref = r_reg_ref;
 assign o_clr_sc  = r_clr_sc;
 assign o_clr_e   = r_clr_e;
 assign o_comp_ac = r_comp_ac;
@@ -139,24 +161,33 @@ assign o_cir_r   = r_cir_r;
 assign o_cir_l   = r_cir_l;
 assign o_inc_ac  = r_inc_ac;
 
-assign o_mem_ref  = r_mem_ref;
-assign o_ind_addr = r_ind_addr;
-assign o_add      = r_add;
-assign o_load     = r_load;
-assign o_store    = r_store;
-assign o_branch   = r_branch;
-assign o_isz      = r_isz;
-
-assign o_is_idle = r_is_idle;
+assign o_clr_pc  = r_clr_pc;
+assign o_fetch   = r_fetch;
 
 // output logic
 always @ (*) begin
     case(c_state)
-
+        IDLE    : r_clr_pc = 1'b1;
+        FETCH   : r_fetch  = 1'b1;
+        MEM_REF_IND : r_read = 1'b1;
+        MEM_REF : r_read = 1'b1;;
+        REG_REF : ;
     endcase
 end
 
+assign o_add    = (w_mem_ref && r_add);
+assign o_load   = (w_mem_ref && r_load);
+assign o_store  = (w_mem_ref && r_store);
+assign o_branch = (w_mem_ref && r_branch);
+assign o_isz    = (w_mem_ref && r_isz); 
+
 
 endmodule
+
+// execute 완료 시 어떤 signal trigger하여 is_done 만들 수 있게 하자
+// datapath에서 r_ex_done 정의하고 assign o_ex_done = r_ex_done 하고
+// o_ex_done signal을 control_unit의 i_ex_done으로 연결된다고 하자
+
+// o_read는 mem에 read로 접근하기 위한 output으로 하자
 
 // non pipeline상태임을 기억하고 작성하자
