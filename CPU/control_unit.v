@@ -26,7 +26,9 @@ module control_unit(
 
     output       o_clr_reg,
     output       o_fetch,
-    output       o_execute
+    output       o_execute,
+    output       o_is_ind,
+    output       o_is_dir
     );
 
 //parameter DWIDTH 16;
@@ -157,7 +159,6 @@ always @ (*) begin
         FETCH       : r_fetch  = 1'b1;
         MEM_REF_IND : begin
                       r_read    = 1'b1;
-                      r_execute = 1'b1;
                       end
         MEM_REF     : begin
                       r_read    = 1'b1;
@@ -185,9 +186,11 @@ assign o_inc_ac  = (w_reg_ref && r_inc_ac);
 assign o_read    = r_read;
 assign o_write   = r_write;
 
-assign o_clr_reg  = r_clr_reg;
-assign o_fetch    = r_fetch;
-assign o_execute  = r_execute;
+assign o_clr_reg = r_clr_reg;
+assign o_fetch   = r_fetch;
+assign o_execute = r_execute;
+assign o_is_ind  = is_ind;
+assign o_is_dir  = is_mem_ref;
 
 endmodule
 
@@ -200,5 +203,7 @@ endmodule
 // r_write에 의한 o_write는 mem에 write로 접근하기 위한 output
 
 // r_execute는 EXECUTE stage를 실행하기위한 trigger로 사용
+
+// sram 만들 때 ready, valid등의 signal을 추가해도 문제없는가???
 
 // non pipeline상태임을 기억하고 작성하자
