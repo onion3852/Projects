@@ -10,7 +10,8 @@ module cpu(
     output we
     );
 
-// parameter DWIDTH 16;
+//parameter DWIDTH 16;
+//parameter ADDR_WIDTH 12;
 
 reg [11:0] r_addr;
 reg [15:0] r_data;
