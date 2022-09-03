@@ -118,12 +118,12 @@ end
 assign is_fetch   = (c_state == DONE);
 assign is_ind     = (c_state == FETCH) && (w_ind_addr);
 assign is_mem_ref = (c_state == MEM_REF_IND) && (w_mem_ref);
-assign is_write   = (c_state == MEM_REF) && (w_mem_ref);
+assign is_write   = (c_state == MEM_REF) && ();
 assign is_reg_ref = (c_state == FETCH) && (w_reg_ref);
 assign is_done    = ( (c_state == REG_REF) && (i_ex_done) ) ||
                     ( (c_state == WRITE)   && (i_ex_done) );
 
-// internal control signal by decoding ir[15:0]
+// internal control signal and output signal by decoding ir[15:0]
 always @ (*) begin
     if(ir[15]) begin   // indirect addressing mode, memory-reference
         w_ind_addr = 1'b1;
@@ -132,22 +132,26 @@ always @ (*) begin
         w_mem_ref = 1'b1;
 
         case(ir[14:12])
-            3'h1 : begin 
+            3'h1 : begin
                 r_add  = 1'b1;
                 r_read = 1'b1;
+                r_addr = ir[11:0];
             end
             3'h2 : begin
                 r_load = 1'b1;
                 r_read = 1'b1;
+                r_addr = ir[11:0];
             end
             3'h3 : begin
                 r_store = 1'b1;
                 r_write = 1'b1;
+                r_addr = ir[11:0];
             end
             3'h4 : r_branch = 1'b1;
             3'h6 : begin
                 r_isz  = 1'b1;
                 r_read = 1'b1;
+                r_addr = ir[11:0];
             end
         endcase
     end
@@ -166,15 +170,15 @@ always @ (*) begin
     end
 end
 
-// output logic
+// other output logic
 always @ (*) begin
     case(c_state)
         IDLE        : r_clr_reg = 1'b1;
         FETCH       : r_fetch   = 1'b1;
         MEM_REF_IND : begin
-                      r_read    = 1'b1;
-                      r_addr    = ir[11:0];
-                      end
+            r_read    = 1'b1;
+            r_addr    = ir[11:0];
+        end
         MEM_REF     : r_execute = 1'b1;
         WRITE       : r_write   = 1'b1;
         REG_REF     : r_execute = 1'b1;

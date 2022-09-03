@@ -27,6 +27,8 @@ module datapath (
     input i_is_ind,
     input i_is_dir,
 
+    output [15:0] o_data,
+    output        o_write,
     output        o_ex_done
     );
     
@@ -41,7 +43,9 @@ reg [11:0] PC;
 reg        I;  // flip-flop I ( = IR[15] )
 reg        E;  // flip-flop E
 
-reg r_ex_done;
+reg [15:0] r_data;
+reg        r_write;
+reg        r_ex_done;
 
 // Reset
 always @ (posedge i_clr_reg) begin
@@ -84,19 +88,40 @@ always @ (posedge clk) begin
     r_ex_done <= 1'b1;
 end
 
-// Core - Memory reference instructions
+// Memory reference instructions - Accesing Memory
 always @ (posedge clk) begin
     if(i_is_ind) begin
         IR[11:0] <= i_data;
         AR       <= i_data;
     end
-    else if(i_is_dir) begin
-        
+    else if(i_is_dir && i_execute && i_add) begin
+        DR <= i_data;
+    end
+    else if(i_is_dir && i_execute && i_load) begin
+        DR <= i_data;
+    end
+    else if(i_is_dir && i_execute && i_store) begin
+        r_data  <= DR;
+        r_addr  <= AR;
+        r_write <= 1'b1;
+    end
+    else if(i_is_dir && i_execute && i_branch) begin
+        PC        <= AR;
+        r_ex_done <= 1'b1;
+    end
+    else if(i_is_dir && i_execute && i_isz) begin
+        DR <= i_data;
     end
 end
 
+// Memory reference instructions - Execution
 
+
+assign o_data    = r_data;
+assign o_write   = r_write;
 assign o_ex_done = r_ex_done;
 
-
 endmodule
+
+// 진짜 '연산'부분은 assign으로 정의???
+// 그러면 pipeline도입할 때 다시 설계해야 하긴 할 듯
