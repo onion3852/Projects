@@ -7,8 +7,9 @@ module control_unit(
     input        i_ex_done,
     input [15:0] ir,
 
-    output       o_read,
-    output       o_write,
+    output [11:0] o_addr,
+    output        o_read,
+    output        o_write,
 
     output       o_clr_ac,
     output       o_clr_e,
@@ -52,8 +53,9 @@ wire is_write;    // triggering WRITE
 wire is_done;     // triggering DONE
 wire is_fetch;    // triggering FETCH
 
-reg r_read;
-reg r_write;
+reg [11:0] r_addr;
+reg        r_read;
+reg        r_write;
 
 reg w_reg_ref;
 reg r_clr_ac;
@@ -124,30 +126,42 @@ assign is_done    = ( (c_state == REG_REF) && (i_ex_done) ) ||
 // internal control signal by decoding ir[15:0]
 always @ (*) begin
     if(ir[15]) begin   // indirect addressing mode, memory-reference
-        w_ind_addr <= 1'b1;
+        w_ind_addr = 1'b1;
     end
     else if(!ir[15] && (ir[14:12] != 3'd7)) begin  // direct addresing mode, memory-reference
-        w_mem_ref <= 1'b1;
+        w_mem_ref = 1'b1;
 
         case(ir[14:12])
-            3'h1 : r_add    <= 1'b1;
-            3'h2 : r_load   <= 1'b1;
-            3'h3 : r_store  <= 1'b1;
-            3'h4 : r_branch <= 1'b1;
-            3'h6 : r_isz    <= 1'b1;
+            3'h1 : begin 
+                r_add  = 1'b1;
+                r_read = 1'b1;
+            end
+            3'h2 : begin
+                r_load = 1'b1;
+                r_read = 1'b1;
+            end
+            3'h3 : begin
+                r_store = 1'b1;
+                r_write = 1'b1;
+            end
+            3'h4 : r_branch = 1'b1;
+            3'h6 : begin
+                r_isz  = 1'b1;
+                r_read = 1'b1;
+            end
         endcase
     end
     else if(!ir[15] && (ir[14:12] == 3'd7)) begin  // register-reference
-        w_reg_ref <= 1'b1;
+        w_reg_ref = 1'b1;
 
         casex(ir[11:0])
-            12'h800 : r_clr_ac  <= 1'b1;    // Clear AC
-            12'h400 : r_clr_e   <= 1'b1;    // Clear E
-            12'h200 : r_comp_ac <= 1'b1;    // Complement AC
-            12'h1xx : r_load_ac <= 1'b1;    // Load xx to AC
-            12'h080 : r_cir_r   <= 1'b1;    // Circulate right
-            12'h040 : r_cir_l   <= 1'b1;    // Circulate left
-            12'h020 : r_inc_ac  <= 1'b1;    // Increment AC
+            12'h800 : r_clr_ac  = 1'b1;    // Clear AC
+            12'h400 : r_clr_e   = 1'b1;    // Clear E
+            12'h200 : r_comp_ac = 1'b1;    // Complement AC
+            12'h1xx : r_load_ac = 1'b1;    // Load xx to AC
+            12'h080 : r_cir_r   = 1'b1;    // Circulate right
+            12'h040 : r_cir_l   = 1'b1;    // Circulate left
+            12'h020 : r_inc_ac  = 1'b1;    // Increment AC
         endcase
     end
 end
@@ -156,14 +170,12 @@ end
 always @ (*) begin
     case(c_state)
         IDLE        : r_clr_reg = 1'b1;
-        FETCH       : r_fetch  = 1'b1;
+        FETCH       : r_fetch   = 1'b1;
         MEM_REF_IND : begin
                       r_read    = 1'b1;
+                      r_addr    = ir[11:0];
                       end
-        MEM_REF     : begin
-                      r_read    = 1'b1;
-                      r_execute = 1'b1;
-                      end
+        MEM_REF     : r_execute = 1'b1;
         WRITE       : r_write   = 1'b1;
         REG_REF     : r_execute = 1'b1;
     endcase
@@ -183,6 +195,7 @@ assign o_cir_r   = (w_reg_ref && r_cir_r);
 assign o_cir_l   = (w_reg_ref && r_cir_l);
 assign o_inc_ac  = (w_reg_ref && r_inc_ac);
 
+assign o_addr    = r_addr;
 assign o_read    = r_read;
 assign o_write   = r_write;
 
@@ -205,5 +218,7 @@ endmodule
 // r_execute는 EXECUTE stage를 실행하기위한 trigger로 사용
 
 // sram 만들 때 ready, valid등의 signal을 추가해도 문제없는가???
+
+// sram에서 read하는데 몇 사이클이 걸려야 정상(?)인가??
 
 // non pipeline상태임을 기억하고 작성하자

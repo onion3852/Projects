@@ -27,7 +27,7 @@ module datapath (
     input i_is_ind,
     input i_is_dir,
 
-    output [11:0] o_addr
+    output        o_ex_done
     );
     
 //parameter DWIDTH 16;
@@ -40,6 +40,8 @@ reg [11:0] AR;
 reg [11:0] PC;
 reg        I;  // flip-flop I ( = IR[15] )
 reg        E;  // flip-flop E
+
+reg r_ex_done;
 
 // Reset
 always @ (posedge i_clr_reg) begin
@@ -79,23 +81,22 @@ always @ (posedge clk) begin
     else if(i_inc_ac && i_execute) begin
         AC <= AC + 1;
     end
-end
-
-// Data_in from memory
-// handshake 이용할까?? (ready, valid)
-always @ (posedge clk) begin
-    if()
+    r_ex_done <= 1'b1;
 end
 
 // Core - Memory reference instructions
 always @ (posedge clk) begin
-    if(i_is_ind | i_is_dir) begin
-        o_addr <= IR[11:0];
+    if(i_is_ind) begin
+        IR[11:0] <= i_data;
+        AR       <= i_data;
     end
-    else if()
+    else if(i_is_dir) begin
+        
+    end
 end
 
 
+assign o_ex_done = r_ex_done;
 
 
 endmodule
