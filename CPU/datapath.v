@@ -35,6 +35,8 @@ module datapath (
 //parameter DWIDTH 16;
 //parameter ADDR_WIDTH 12;
 
+wire run;
+
 reg [15:0] IR;
 reg [15:0] DR;
 reg [15:0] AC;              
@@ -42,6 +44,9 @@ reg [11:0] AR;
 reg [11:0] PC;
 reg        I;  // flip-flop I ( = IR[15] )
 reg        E;  // flip-flop E
+reg [2:0]  SC; // Sequence Counter 
+               // memory reference execution에서 
+               // 어쩔 수 없이 필요한 듯
 
 reg [15:0] r_data;
 reg        r_write;
@@ -56,6 +61,18 @@ always @ (posedge i_clr_reg) begin
     PC <= 12'b0;
     E  <= 1'b0;
     I  <= 1'b0;
+    SC <= 3'b0;
+end
+
+// Sequence Counter
+always @ (posedge clk) begin
+    if(run) begin
+        SC <= SC + 1;
+    end
+    else if(r_ex_done) begin
+        run <= 1'b0;
+        SC  <= 3'b0;
+    end
 end
 
 // Core - Register reference instructions
