@@ -3,6 +3,7 @@
 module control_unit(
     input        clk,
     input        reset_n,
+    input        i_w_mem_ref,
     input        i_run,
     input        i_ex_done,
     input [15:0] ir,
@@ -53,11 +54,14 @@ wire is_write;    // triggering WRITE
 wire is_done;     // triggering DONE
 wire is_fetch;    // triggering FETCH
 
+wire w_ind_addr;
+wire w_reg_ref;
+wire w_mem_ref = (!ir[15] && (ir[14:12] != 3'd7)) || (i_w_mem_ref);
+
 reg [11:0] r_addr;
 reg        r_read;
 reg        r_write;
 
-reg w_reg_ref;
 reg r_clr_ac;
 reg r_clr_e;
 reg r_comp_ac;
@@ -66,8 +70,6 @@ reg r_cir_r;
 reg r_cir_l;
 reg r_inc_ac;
 
-reg w_mem_ref;
-reg w_ind_addr;
 reg r_add;
 reg r_load;
 reg r_store;
@@ -129,8 +131,6 @@ always @ (*) begin
         w_ind_addr = 1'b1;
     end
     else if(!ir[15] && (ir[14:12] != 3'd7)) begin  // direct addresing mode, memory-reference
-        w_mem_ref = 1'b1;
-
         case(ir[14:12])
             3'h1 : begin
                 r_add  = 1'b1;
@@ -210,19 +210,3 @@ assign o_is_ind  = is_ind;
 assign o_is_dir  = is_mem_ref;
 
 endmodule
-
-
-// execute 완료 시 어떤 signal trigger하여 is_done 만들 수 있게 하자
-// datapath에서 r_ex_done 정의하고 assign o_ex_done = r_ex_done 하고
-// o_ex_done signal을 control_unit의 i_ex_done으로 연결된다고 하자
-
-// r_read에 의한 o_read는 mem에 read로 접근하기 위한 output으로 하자
-// r_write에 의한 o_write는 mem에 write로 접근하기 위한 output
-
-// r_execute는 EXECUTE stage를 실행하기위한 trigger로 사용
-
-// sram 만들 때 ready, valid등의 signal을 추가해도 문제없는가???
-
-// sram에서 read하는데 몇 사이클이 걸려야 정상(?)인가??
-
-// non pipeline상태임을 기억하고 작성하자

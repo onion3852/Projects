@@ -29,13 +29,13 @@ module datapath (
 
     output [15:0] o_data,
     output        o_write,
-    output        o_ex_done
+    output        o_ex_done,
+    output        o_w_mem_ref
     );
     
 //parameter DWIDTH 16;
 //parameter ADDR_WIDTH 12;
 
-wire run;
 
 reg [15:0] IR;
 reg [15:0] DR;
@@ -51,6 +51,8 @@ reg [2:0]  SC; // Sequence Counter
 reg [15:0] r_data;
 reg        r_write;
 reg        r_ex_done;
+reg        r_w_mem_ref;
+reg        run;
 
 // Reset
 always @ (posedge i_clr_reg) begin
@@ -65,13 +67,16 @@ always @ (posedge i_clr_reg) begin
 end
 
 // Sequence Counter
-always @ (posedge clk) begin
+always @ (*) begin
     if(run) begin
-        SC <= SC + 1;
+        SC = SC + 1;
     end
     else if(r_ex_done) begin
-        run <= 1'b0;
-        SC  <= 3'b0;
+        run = 1'b0;
+        SC  = 3'b0;
+    end
+    else begin
+        SC = 3'b0;
     end
 end
 
@@ -105,40 +110,64 @@ always @ (posedge clk) begin
     r_ex_done <= 1'b1;
 end
 
-// Memory reference instructions - Accesing Memory
+// Memory reference instructions - SC == 3'b1
 always @ (posedge clk) begin
     if(i_is_ind) begin
-        IR[11:0] <= i_data;
-        AR       <= i_data;
+        IR[11:0]    <= i_data;
+        AR          <= i_data;
+        run         <= 1'b1;
+        r_w_mem_ref <= 1'b1;
     end
-    else if(i_is_dir && i_execute && i_add) begin
+    else if(i_is_dir && i_execute && i_add && (SC == 3'b1)) begin
         DR <= i_data;
     end
-    else if(i_is_dir && i_execute && i_load) begin
+    else if(i_is_dir && i_execute && i_load && (SC == 3'b1)) begin
         DR <= i_data;
     end
-    else if(i_is_dir && i_execute && i_store) begin
-        r_data  <= DR;
-        r_addr  <= AR;
-        r_write <= 1'b1;
+    else if(i_is_dir && i_execute && i_store && (SC == 3'b1)) begin
+        r_data    <= DR;
+        r_addr    <= AR;
+        r_write   <= 1'b1;
+        r_ex_done <= 1'b1;
     end
-    else if(i_is_dir && i_execute && i_branch) begin
+    else if(i_is_dir && i_execute && i_branch && (SC == 3'b1)) begin
         PC        <= AR;
         r_ex_done <= 1'b1;
     end
-    else if(i_is_dir && i_execute && i_isz) begin
+    else if(i_is_dir && i_execute && i_isz && (SC == 3'b1)) begin
         DR <= i_data;
     end
 end
 
-// Memory reference instructions - Execution
+// Memory reference instructions - SC is bigger than 3'b1
+always @ (posedge clk) begin
+    if(i_is_dir && i_execute && i_add && (SC == 3'b2)) begin
+        {E, AC}   <= AC + DR;
+        r_ex_done <= 1'b1;
+    end
+    else if(i_is_dir && i_execute && i_load && (SC == 3'b2)) begin
+        AC        <= DR;
+        r_ex_done <= 1'b1;
+    end
+    else if(i_is_dir && i_execute && i_isz && (SC == 3'b2)) begin
+        DR <= DR + 1;
+    end
+    else if(i_is_dir && i_execute && i_isz && (SC == 3'b3)) begin
+        r_data  <= DR;
+        r_addr  <= AR;
+        r_write <= 1'b1;
 
+        if(DR == 16'b0) begin
+            PC <= PC + 1;
+        end
 
-assign o_data    = r_data;
-assign o_write   = r_write;
-assign o_ex_done = r_ex_done;
+        r_ex_done <= 1'b1;
+    end
+end
+
+assign o_data      = r_data;
+assign o_write     = r_write;
+assign o_ex_done   = r_ex_done;
+assign o_w_mem_ref = r_w_mem_ref;
 
 endmodule
-
-// 진짜 '연산'부분은 assign으로 정의???
-// 그러면 pipeline도입할 때 다시 설계해야 하긴 할 듯
