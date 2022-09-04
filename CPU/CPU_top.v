@@ -12,3 +12,6 @@ module CPU #(
 // instantiation
 datapath DATAPATH ();
 control_unit CONTROL ();
+
+
+endmodule
