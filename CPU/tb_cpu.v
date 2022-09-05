@@ -1,19 +1,32 @@
 `timescale 1ns / 1ps
 
-module tb_cpu();
+module tb_cpu ();
+
+parameter ADDR_WIDTH = 12;
+parameter WORD_DEPTH = 4096;
+parameter WORD_WIDTH = 16;
 
 reg CLK, RESET_n;
+
+wire [DWIDTH-1:0]     DATA_R;
+wire [DWIDTH-1:0]     DATA_W;
+wire [ADDR_WIDTH-1:0] ADDR;
+wire WE;
 
 integer file_pointer;
 integer i;
 
-cpu CPU (
+CPU CPU (
     .clk(CLK), 
-    .reset(RESET_n),
+    .reset_n(RESET_n),
     );
 
 sram SRAM (
-    .clk(CLK)
+    .clk(CLK), 
+    .i_data(DATA_W), 
+    .i_addr(ADDR), 
+    .i_we(WE), 
+    .o_data(DATA_R)
     );
 
 always #5 CLK = ~CLK;

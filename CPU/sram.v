@@ -1,9 +1,9 @@
 `timescale 1ns / 1ps
 
 module sram #(
-    parameter ADDR_WIDTH = 12;
-    parameter WORD_DEPTH = 4096;
-    parameter WORD_WIDTH = 16;
+    parameter ADDR_WIDTH = 12,
+    parameter WORD_DEPTH = 4096,
+    parameter WORD_WIDTH = 16
 )   (
     input                  clk,
     input [WORD_WIDTH-1:0] i_data, 
