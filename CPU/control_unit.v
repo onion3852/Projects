@@ -37,20 +37,18 @@ module control_unit(
 //parameter ADDR_WIDTH 12;
 
 // state for FSM
-localparam IDLE        = 3'b0;
-localparam FETCH       = 3'b1;
-localparam REG_REF     = 3'b2;
-localparam MEM_REF_IND = 3'b3;  // indirect addressing
-localparam MEM_REF     = 3'b4;
-localparam WRITE       = 3'b5;
-localparam DONE        = 3'b6;
+localparam IDLE        = 3'd0;
+localparam FETCH       = 3'd1;
+localparam REG_REF     = 3'd2;
+localparam MEM_REF_IND = 3'd3;  // indirect addressing
+localparam MEM_REF     = 3'd4;
+localparam DONE        = 3'd5;
 reg [2:0] c_state;
 reg [2:0] n_state;
 
 wire is_ind;      // triggering MEM_REF_IND
 wire is_mem_ref;  // triggering MEM_REF
 wire is_reg_ref;  // triggering REG_REF
-wire is_write;    // triggering WRITE
 wire is_done;     // triggering DONE
 wire is_fetch;    // triggering FETCH
 
@@ -102,9 +100,6 @@ always @ (*) begin
     else if(is_mem_ref) begin
         n_state = MEM_REF;
     end
-    else if(is_write) begin
-        n_state = WRITE;
-    end
     else if(is_reg_ref) begin
         n_state = REG_REF;
     end
@@ -120,7 +115,6 @@ end
 assign is_fetch   = (c_state == DONE);
 assign is_ind     = (c_state == FETCH) && (w_ind_addr);
 assign is_mem_ref = (c_state == MEM_REF_IND) && (w_mem_ref);
-assign is_write   = (c_state == MEM_REF) && ();
 assign is_reg_ref = (c_state == FETCH) && (w_reg_ref);
 assign is_done    = ( (c_state == REG_REF) && (i_ex_done) ) ||
                     ( (c_state == WRITE)   && (i_ex_done) );
@@ -180,7 +174,6 @@ always @ (*) begin
             r_addr    = ir[11:0];
         end
         MEM_REF     : r_execute = 1'b1;
-        WRITE       : r_write   = 1'b1;
         REG_REF     : r_execute = 1'b1;
     endcase
 end
