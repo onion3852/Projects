@@ -2,23 +2,25 @@
 
 module tb_cpu();
 
-reg CLK, RESET;
-wire [11:0] ADDR_BUS;    // address bus
-wire [15:0] DATA_BUS_1;  // cpu to sram
-wire [15:0] DATA_BUS_2;  // sram to cpu
-wire WE;                 // write enable
+reg CLK, RESET_n;
 
 integer file_pointer;
 integer i;
 
-cpu CPU (.clk(CLK), .reset(RESET), .data_in(DATA_BUS_2), .addr(ADDR_BUS), .we(WE), .data_out(DATA_BUS_1));
-sram SRAM (.clk(CLK), .din(DATA_BUS_1), .addr(ADDR_BUS), .we(WE), .dout(DATA_BUS_2));
+cpu CPU (
+    .clk(CLK), 
+    .reset(RESET_n),
+    );
+
+sram SRAM (
+    .clk(CLK)
+    );
 
 always #5 CLK = ~CLK;
 initial begin
     CLK = 1'b0;
-    RESET = 1'b1; #1  RESET = 1'b0; #1
-    RESET = 1'b1;
+    RESET_n = 1'b1; #1  RESET_n = 1'b0; #1
+    RESET_n = 1'b1;
     
     $readmemb("score.txt", tb_cpu.SRAM.mem, 100, 109);
     $readmemb("instruction.txt", tb_cpu.SRAM.mem);
