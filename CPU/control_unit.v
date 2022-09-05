@@ -4,7 +4,6 @@ module control_unit(
     input        clk,
     input        reset_n,
     input        i_w_mem_ref,
-    input        i_run,
     input        i_ex_done,
     input [15:0] ir,
 

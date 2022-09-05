@@ -4,9 +4,6 @@ module datapath (
     input        clk,
     input [15:0] i_data,
 
-    input i_read,
-    input i_write,
-
     input i_clr_ac,
     input i_clr_e,
     input i_comp_ac,
@@ -27,7 +24,9 @@ module datapath (
     input i_is_ind,
     input i_is_dir,
 
+    output [15:0] o_ir,
     output [15:0] o_data,
+    output [11:0] o_addr,
     output        o_write,
     output        o_ex_done,
     output        o_w_mem_ref
@@ -49,6 +48,7 @@ reg [2:0]  SC; // Sequence Counter
                // 어쩔 수 없이 필요한 듯
 
 reg [15:0] r_data;
+reg [11:0] r_addr;
 reg        r_write;
 reg        r_ex_done;
 reg        r_w_mem_ref;
@@ -85,7 +85,7 @@ always @ (posedge clk) begin
     if(i_clr_ac && i_execute) begin
         AC <= 16'b0;
     end
-    else if(i__clr_e && i_execute) begin
+    else if(i_clr_e && i_execute) begin
         E  <= 1'b0;
     end
     else if(i_comp_ac && i_execute) begin
@@ -118,41 +118,41 @@ always @ (posedge clk) begin
         run         <= 1'b1;
         r_w_mem_ref <= 1'b1;
     end
-    else if(i_is_dir && i_execute && i_add && (SC == 3'b1)) begin
+    else if(i_is_dir && i_execute && i_add && (SC == 3'd1)) begin
         DR <= i_data;
     end
-    else if(i_is_dir && i_execute && i_load && (SC == 3'b1)) begin
+    else if(i_is_dir && i_execute && i_load && (SC == 3'd1)) begin
         DR <= i_data;
     end
-    else if(i_is_dir && i_execute && i_store && (SC == 3'b1)) begin
+    else if(i_is_dir && i_execute && i_store && (SC == 3'd1)) begin
         r_data    <= DR;
         r_addr    <= AR;
         r_write   <= 1'b1;
         r_ex_done <= 1'b1;
     end
-    else if(i_is_dir && i_execute && i_branch && (SC == 3'b1)) begin
+    else if(i_is_dir && i_execute && i_branch && (SC == 3'd1)) begin
         PC        <= AR;
         r_ex_done <= 1'b1;
     end
-    else if(i_is_dir && i_execute && i_isz && (SC == 3'b1)) begin
+    else if(i_is_dir && i_execute && i_isz && (SC == 3'd1)) begin
         DR <= i_data;
     end
 end
 
 // Memory reference instructions - SC is bigger than 3'b1
 always @ (posedge clk) begin
-    if(i_is_dir && i_execute && i_add && (SC == 3'b2)) begin
+    if(i_is_dir && i_execute && i_add && (SC == 3'd2)) begin
         {E, AC}   <= AC + DR;
         r_ex_done <= 1'b1;
     end
-    else if(i_is_dir && i_execute && i_load && (SC == 3'b2)) begin
+    else if(i_is_dir && i_execute && i_load && (SC == 3'd2)) begin
         AC        <= DR;
         r_ex_done <= 1'b1;
     end
-    else if(i_is_dir && i_execute && i_isz && (SC == 3'b2)) begin
+    else if(i_is_dir && i_execute && i_isz && (SC == 3'd2)) begin
         DR <= DR + 1;
     end
-    else if(i_is_dir && i_execute && i_isz && (SC == 3'b3)) begin
+    else if(i_is_dir && i_execute && i_isz && (SC == 3'd3)) begin
         r_data  <= DR;
         r_addr  <= AR;
         r_write <= 1'b1;
@@ -165,7 +165,9 @@ always @ (posedge clk) begin
     end
 end
 
+assign o_ir        = IR;
 assign o_data      = r_data;
+assign o_addr      = r_addr;
 assign o_write     = r_write;
 assign o_ex_done   = r_ex_done;
 assign o_w_mem_ref = r_w_mem_ref;
