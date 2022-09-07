@@ -9,7 +9,8 @@ module control_unit(
     input [15:0] ir,
 
     output [11:0] o_addr,
-    output        o_we,
+    output        o_we_2,
+    output        o_ce,
 
     output       o_clr_ac,
     output       o_clr_e,
@@ -51,6 +52,7 @@ wire is_mem_ref;  // triggering MEM_REF
 wire is_reg_ref;  // triggering REG_REF
 wire is_done;     // triggering DONE
 wire is_fetch;    // triggering FETCH
+wire is_decode;   // triggering DECODE
 
 wire w_mem_ref = (!ir[15] && (ir[14:12] != 3'd7)) || (i_w_mem_ref);
 
@@ -59,6 +61,7 @@ reg w_reg_ref;
 
 reg [11:0] r_addr;
 reg        r_we;
+reg        r_ce;
 
 reg r_clr_ac;
 reg r_clr_e;
@@ -129,22 +132,26 @@ always @ (*) begin
             3'h1 : begin
                 r_add  = 1'b1;
                 r_we   = 1'b0;
+                r_ce   = 1'b1;
                 r_addr = ir[11:0];
             end
             3'h2 : begin
                 r_load = 1'b1;
                 r_we   = 1'b0;
+                r_ce   = 1'b1;
                 r_addr = ir[11:0];
             end
             3'h3 : begin
                 r_store = 1'b1;
                 r_we    = 1'b1;
+                r_ce    = 1'b1;
                 r_addr  = ir[11:0];
             end
             3'h4 : r_branch = 1'b1;
             3'h6 : begin
                 r_isz  = 1'b1;
                 r_we   = 1'b0;
+                r_ce   = 1'b1;
                 r_addr = ir[11:0];
             end
         endcase
@@ -168,9 +175,10 @@ end
 always @ (*) begin
     case(c_state)
         IDLE        : r_clr_reg = 1'b1;
-        FETCH       : r_fetch   = 1'b1;
+        DECODE      : r_fetch   = 1'b0;
         MEM_REF_IND : begin
             r_we   = 1'b0;
+            r_ce   = 1'b1;
             r_addr = ir[11:0];
         end
         MEM_REF     : r_execute = 1'b1;
@@ -193,7 +201,8 @@ assign o_cir_l   = (w_reg_ref && r_cir_l);
 assign o_inc_ac  = (w_reg_ref && r_inc_ac);
 
 assign o_addr    = r_addr;
-assign o_we      = r_we;
+assign o_we_2    = r_we;
+assign o_ce      = r_ce;
 
 assign o_clr_reg = r_clr_reg;
 assign o_fetch   = (is_fetch || r_fetch);
