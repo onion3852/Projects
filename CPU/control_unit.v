@@ -8,8 +8,7 @@ module control_unit(
     input [15:0] ir,
 
     output [11:0] o_addr,
-    output        o_read,
-    output        o_write,
+    output        o_we,
 
     output       o_clr_ac,
     output       o_clr_e,
@@ -57,8 +56,7 @@ reg w_ind_addr;
 reg w_reg_ref;
 
 reg [11:0] r_addr;
-reg        r_read;
-reg        r_write;
+reg        r_we;
 
 reg r_clr_ac;
 reg r_clr_e;
@@ -127,23 +125,23 @@ always @ (*) begin
         case(ir[14:12])
             3'h1 : begin
                 r_add  = 1'b1;
-                r_read = 1'b1;
+                r_we   = 1'b0;
                 r_addr = ir[11:0];
             end
             3'h2 : begin
                 r_load = 1'b1;
-                r_read = 1'b1;
+                r_we   = 1'b0;
                 r_addr = ir[11:0];
             end
             3'h3 : begin
                 r_store = 1'b1;
-                r_write = 1'b1;
-                r_addr = ir[11:0];
+                r_we    = 1'b1;
+                r_addr  = ir[11:0];
             end
             3'h4 : r_branch = 1'b1;
             3'h6 : begin
                 r_isz  = 1'b1;
-                r_read = 1'b1;
+                r_we   = 1'b0;
                 r_addr = ir[11:0];
             end
         endcase
@@ -192,8 +190,7 @@ assign o_cir_l   = (w_reg_ref && r_cir_l);
 assign o_inc_ac  = (w_reg_ref && r_inc_ac);
 
 assign o_addr    = r_addr;
-assign o_read    = r_read;
-assign o_write   = r_write;
+assign o_we      = r_we;
 
 assign o_clr_reg = r_clr_reg;
 assign o_fetch   = r_fetch;

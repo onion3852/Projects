@@ -62,7 +62,7 @@ datapath DATAPATH (
 
     .o_data     (data_w),
     .o_addr     (addr),
-    .o_write    (we),
+    .o_we       (we),
     .o_ex_done  (ex_done),
     .o_w_mem_ref(mem_ref)
     );
@@ -75,8 +75,7 @@ control_unit CONTROL (
     .ir         (ir),
 
     .o_addr   (addr),
-    //.o_read   (),
-    .o_write  (we),
+    .o_we     (we),
 
     .o_clr_ac (clr_ac),
     .o_clr_e  (clr_e),

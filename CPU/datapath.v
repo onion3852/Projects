@@ -27,8 +27,8 @@ module datapath (
     output [15:0] o_ir,
     output [15:0] o_data,
     output [11:0] o_addr,
-    output        o_write,
-    output        o_read,
+    output        o_we,
+    output        o_ce,
     output        o_ex_done,
     output        o_w_mem_ref
     );
@@ -50,8 +50,8 @@ reg [2:0]  SC; // Sequence Counter
 
 reg [15:0] r_data;
 reg [11:0] r_addr;
-reg        r_write;
-reg        r_read;
+reg        r_we;
+reg        r_ce;
 reg        r_ex_done;
 reg        r_w_mem_ref;
 reg        run;
@@ -86,16 +86,20 @@ end
 // Increasing PC & 
 // IR gets the instruction code
 always @ (posedge clk) begin
-    if(r_ex_done) begin
+    if(i_fetch) begin
         AR <= PC;
         PC <= PC + 1;
 
         r_ex_done <= 1'b0;
     end
-    else if(!r_ex_done) begin
-        
-        r_read <= 1'b1;
+    else if(!r_ex_done) begin  // reading instruction from memory
+        r_ce   <= 1'b1;
+        r_we   <= 1'b0;
         r_addr <= AR;
+    end
+    else if(r_ce) begin
+        IR   <= i_data;
+        r_ce <= 1'b0;
     end
 end
 
@@ -146,7 +150,7 @@ always @ (posedge clk) begin
     else if(i_is_dir && i_execute && i_store && (SC == 3'd1)) begin
         r_data    <= DR;
         r_addr    <= AR;
-        r_write   <= 1'b1;
+        r_we      <= 1'b1;
         r_ex_done <= 1'b1;
     end
     else if(i_is_dir && i_execute && i_branch && (SC == 3'd1)) begin
@@ -172,14 +176,13 @@ always @ (posedge clk) begin
         DR <= DR + 1;
     end
     else if(i_is_dir && i_execute && i_isz && (SC == 3'd3)) begin
-        r_data  <= DR;
-        r_addr  <= AR;
-        r_write <= 1'b1;
+        r_data <= DR;
+        r_addr <= AR;
+        r_we   <= 1'b1;
 
         if(DR == 16'b0) begin
             PC <= PC + 1;
         end
-
         r_ex_done <= 1'b1;
     end
 end
@@ -187,15 +190,15 @@ end
 assign o_ir        = IR;
 assign o_data      = r_data;
 assign o_addr      = r_addr;
-assign o_write     = r_write;
-assign o_read      = r_read;
+assign o_we        = r_we;
+assign o_ce        = r_ce;
 assign o_ex_done   = r_ex_done;
 assign o_w_mem_ref = r_w_mem_ref;
 
 endmodule
 
 // sram단에서 read/write 구분 정해야함
-
-// 다시 보니까 control unit에서 정의한 
-// output signal o_fetch을 datapath에서 안쓰고 있었음
-// 이거 이용하면 될 듯함
+// master에서 보내는 signal을 we로 통일하고
+// rule은 sram과 맞추면 될 듯
+// high=write
+// low=read
