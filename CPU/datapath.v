@@ -28,6 +28,7 @@ module datapath (
     output [15:0] o_data,
     output [11:0] o_addr,
     output        o_write,
+    output        o_read,
     output        o_ex_done,
     output        o_w_mem_ref
     );
@@ -50,6 +51,7 @@ reg [2:0]  SC; // Sequence Counter
 reg [15:0] r_data;
 reg [11:0] r_addr;
 reg        r_write;
+reg        r_read;
 reg        r_ex_done;
 reg        r_w_mem_ref;
 reg        run;
@@ -77,6 +79,23 @@ always @ (*) begin
     end
     else begin
         SC = 3'b0;
+    end
+end
+
+// Fetch Instruction & 
+// Increasing PC & 
+// IR gets the instruction code
+always @ (posedge clk) begin
+    if(r_ex_done) begin
+        AR <= PC;
+        PC <= PC + 1;
+
+        r_ex_done <= 1'b0;
+    end
+    else if(!r_ex_done) begin
+        
+        r_read <= 1'b1;
+        r_addr <= AR;
     end
 end
 
@@ -169,7 +188,14 @@ assign o_ir        = IR;
 assign o_data      = r_data;
 assign o_addr      = r_addr;
 assign o_write     = r_write;
+assign o_read      = r_read;
 assign o_ex_done   = r_ex_done;
 assign o_w_mem_ref = r_w_mem_ref;
 
 endmodule
+
+// sram단에서 read/write 구분 정해야함
+
+// 다시 보니까 control unit에서 정의한 
+// output signal o_fetch을 datapath에서 안쓰고 있었음
+// 이거 이용하면 될 듯함

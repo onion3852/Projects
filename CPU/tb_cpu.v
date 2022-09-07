@@ -8,8 +8,8 @@ parameter WORD_WIDTH = 16;
 
 reg CLK, RESET_n;
 
-wire [DWIDTH-1:0]     DATA_R;
-wire [DWIDTH-1:0]     DATA_W;
+wire [WORD_WIDTH-1:0] DATA_R;
+wire [WORD_WIDTH-1:0] DATA_W;
 wire [ADDR_WIDTH-1:0] ADDR;
 wire WE;
 
@@ -18,7 +18,7 @@ integer i;
 
 CPU CPU (
     .clk(CLK), 
-    .reset_n(RESET_n),
+    .reset_n(RESET_n)
     );
 
 sram SRAM (

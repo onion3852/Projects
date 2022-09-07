@@ -51,9 +51,10 @@ wire is_reg_ref;  // triggering REG_REF
 wire is_done;     // triggering DONE
 wire is_fetch;    // triggering FETCH
 
-wire w_ind_addr;
-wire w_reg_ref;
 wire w_mem_ref = (!ir[15] && (ir[14:12] != 3'd7)) || (i_w_mem_ref);
+
+reg w_ind_addr;
+reg w_reg_ref;
 
 reg [11:0] r_addr;
 reg        r_read;
@@ -115,8 +116,7 @@ assign is_fetch   = (c_state == DONE);
 assign is_ind     = (c_state == FETCH) && (w_ind_addr);
 assign is_mem_ref = (c_state == MEM_REF_IND) && (w_mem_ref);
 assign is_reg_ref = (c_state == FETCH) && (w_reg_ref);
-assign is_done    = ( (c_state == REG_REF) && (i_ex_done) ) ||
-                    ( (c_state == WRITE)   && (i_ex_done) );
+assign is_done    = (c_state == REG_REF) && (i_ex_done);
 
 // internal control signal and output signal by decoding ir[15:0]
 always @ (*) begin

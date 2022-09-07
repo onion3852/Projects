@@ -13,8 +13,8 @@ module sram #(
     output [WORD_WIDTH-1:0] o_data
     );
 
-reg [word_width-1:0] o_data;
-reg [word_width-1:0] mem[0:word_depth-1];    // 2^12 X 16 sram
+reg o_data;
+reg [WORD_WIDTH-1:0] mem[0:WORD_DEPTH-1];    // 2^12 X 16 sram
 
 always @ (posedge clk) begin
     if(i_we) begin   // write
