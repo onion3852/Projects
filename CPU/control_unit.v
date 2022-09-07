@@ -4,6 +4,7 @@ module control_unit(
     input        clk,
     input        reset_n,
     input        i_w_mem_ref,
+    input        i_decoding,
     input        i_ex_done,
     input [15:0] ir,
 
@@ -37,10 +38,11 @@ module control_unit(
 // state for FSM
 localparam IDLE        = 3'd0;
 localparam FETCH       = 3'd1;
-localparam REG_REF     = 3'd2;
-localparam MEM_REF_IND = 3'd3;  // indirect addressing
-localparam MEM_REF     = 3'd4;
-localparam DONE        = 3'd5;
+localparam DECODE      = 3'd2;
+localparam REG_REF     = 3'd3;
+localparam MEM_REF_IND = 3'd4;  // indirect addressing
+localparam MEM_REF     = 3'd5;
+localparam DONE        = 3'd6;
 reg [2:0] c_state;
 reg [2:0] n_state;
 
@@ -92,6 +94,9 @@ always @ (*) begin
     if(is_fetch) begin
         n_state = FETCH;
     end
+    else if(is_decode) begin
+        n_state = DECODE;
+    end
     else if(is_ind) begin
         n_state = MEM_REF_IND;
     end
@@ -104,16 +109,14 @@ always @ (*) begin
     else if(is_done) begin
         n_state = DONE;
     end
-    else begin
-        n_state = IDLE;
-    end
 end
 
 // triggering signals
-assign is_fetch   = (c_state == DONE);
-assign is_ind     = (c_state == FETCH) && (w_ind_addr);
+assign is_fetch   = (c_state == DONE) || (c_state == IDLE);
+assign is_decode  = (i_decoding);
+assign is_ind     = (c_state == DECODE) && (w_ind_addr);
 assign is_mem_ref = (c_state == MEM_REF_IND) && (w_mem_ref);
-assign is_reg_ref = (c_state == FETCH) && (w_reg_ref);
+assign is_reg_ref = (c_state == DECODE) && (w_reg_ref);
 assign is_done    = (c_state == REG_REF) && (i_ex_done);
 
 // internal control signal and output signal by decoding ir[15:0]
@@ -167,8 +170,8 @@ always @ (*) begin
         IDLE        : r_clr_reg = 1'b1;
         FETCH       : r_fetch   = 1'b1;
         MEM_REF_IND : begin
-            r_read    = 1'b1;
-            r_addr    = ir[11:0];
+            r_we   = 1'b0;
+            r_addr = ir[11:0];
         end
         MEM_REF     : r_execute = 1'b1;
         REG_REF     : r_execute = 1'b1;
@@ -193,7 +196,7 @@ assign o_addr    = r_addr;
 assign o_we      = r_we;
 
 assign o_clr_reg = r_clr_reg;
-assign o_fetch   = r_fetch;
+assign o_fetch   = (is_fetch || r_fetch);
 assign o_execute = r_execute;
 assign o_is_ind  = is_ind;
 assign o_is_dir  = is_mem_ref;

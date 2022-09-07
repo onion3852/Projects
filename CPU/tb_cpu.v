@@ -12,20 +12,27 @@ wire [WORD_WIDTH-1:0] DATA_R;
 wire [WORD_WIDTH-1:0] DATA_W;
 wire [ADDR_WIDTH-1:0] ADDR;
 wire WE;
+wire CE;
 
 integer file_pointer;
 integer i;
 
 CPU CPU (
-    .clk(CLK), 
-    .reset_n(RESET_n)
+    .clk    (CLK), 
+    .reset_n(RESET_n),
+    .i_data (DATA_R),
+    .o_data (DATA_W),
+    .o_addr (ADDR),
+    .o_we   (WE),
+    .o_ce   (CE)
     );
 
 sram SRAM (
-    .clk(CLK), 
+    .clk   (CLK), 
     .i_data(DATA_W), 
     .i_addr(ADDR), 
-    .i_we(WE), 
+    .i_we  (WE),
+    .i_ce  (CE),
     .o_data(DATA_R)
     );
 

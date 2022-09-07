@@ -29,6 +29,8 @@ module datapath (
     output [11:0] o_addr,
     output        o_we,
     output        o_ce,
+    output        o_fetch,
+    output        o_decoding,
     output        o_ex_done,
     output        o_w_mem_ref
     );
@@ -52,6 +54,8 @@ reg [15:0] r_data;
 reg [11:0] r_addr;
 reg        r_we;
 reg        r_ce;
+reg        r_fetch;
+reg        r_decoding;
 reg        r_ex_done;
 reg        r_w_mem_ref;
 reg        run;
@@ -90,7 +94,9 @@ always @ (posedge clk) begin
         AR <= PC;
         PC <= PC + 1;
 
-        r_ex_done <= 1'b0;
+        r_fetch    <= 1'b0;
+        r_ex_done  <= 1'b0;
+        r_decoding <= 1'b1;
     end
     else if(!r_ex_done) begin  // reading instruction from memory
         r_ce   <= 1'b1;
@@ -99,7 +105,9 @@ always @ (posedge clk) begin
     end
     else if(r_ce) begin
         IR   <= i_data;
-        r_ce <= 1'b0;
+
+        r_decoding <= 1'b0;
+        r_ce       <= 1'b0;
     end
 end
 
@@ -192,6 +200,8 @@ assign o_data      = r_data;
 assign o_addr      = r_addr;
 assign o_we        = r_we;
 assign o_ce        = r_ce;
+assign o_fetch     = r_fetch;
+assign o_decoding  = r_decoding;
 assign o_ex_done   = r_ex_done;
 assign o_w_mem_ref = r_w_mem_ref;
 

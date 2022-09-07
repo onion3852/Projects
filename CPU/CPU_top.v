@@ -5,7 +5,13 @@ module CPU #(
     parameter ADDR_WIDTH = 12
 )   (
     input clk,
-    input reset_n
+    input reset_n,
+    input i_data,
+    
+    output o_data,
+    output o_addr,
+    output o_we,
+    output o_ce
     );
 
 wire [DWIDTH-1:0]     ir;
@@ -13,6 +19,7 @@ wire [DWIDTH-1:0]     data_r;
 wire [DWIDTH-1:0]     data_w;
 wire [ADDR_WIDTH-1:0] addr;
 wire we;
+wire ce;
 
 wire clr_ac;
 wire clr_e;
@@ -29,6 +36,7 @@ wire branch;
 wire isz;
 wire clr_reg;
 wire fetch;
+wire decode;
 wire execute;
 wire is_ind;
 wire is_dir;
@@ -36,6 +44,11 @@ wire is_dir;
 wire ex_done;
 wire mem_ref;
 
+assign data_r = i_data;
+assign o_data = data_w;
+assign o_addr = addr;
+assign o_we   = we;
+assign o_ce   = ce;
 
 // instantiation
 datapath DATAPATH (
@@ -63,7 +76,10 @@ datapath DATAPATH (
     .o_data     (data_w),
     .o_addr     (addr),
     .o_we       (we),
+    .o_ce       (ce),
     .o_ex_done  (ex_done),
+    .o_fetch    (fetch),
+    .o_decoding (decode),
     .o_w_mem_ref(mem_ref)
     );
 
@@ -71,6 +87,7 @@ control_unit CONTROL (
     .clk        (clk),
     .reset_n    (reset_n),
     .i_w_mem_ref(mem_ref),
+    .i_decoding (decode),
     .i_ex_done  (ex_done),
     .ir         (ir),
 
@@ -97,5 +114,7 @@ control_unit CONTROL (
     .o_is_dir (is_dir)
     );
 
-
 endmodule
+
+// sram을 instantiation하지 않고 접근하는 방법이 없는거 같은데???
+// CPU_top에 port 뚫어놓고 tb에서 연결하면 되는 듯???
