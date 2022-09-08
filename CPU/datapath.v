@@ -70,6 +70,8 @@ always @ (posedge i_clr_reg) begin
     E  <= 1'b0;
     I  <= 1'b0;
     SC <= 3'b0;
+
+    r_decoding <= 1'b0;
 end
 
 // Sequence Counter &
@@ -82,12 +84,11 @@ always @ (*) begin
         run = 1'b0;
         SC  = 3'b0;
     end
-    else if(i_fetch) begin
-        r_fetch = i_fetch;
-    end
     else begin
         SC = 3'b0;
     end
+
+    r_fetch = r_decoding ? 1'b0 : i_fetch;
 end
 
 // Fetch Instruction & 
@@ -98,20 +99,17 @@ always @ (posedge clk) begin
         AR <= PC;
         PC <= PC + 1;
 
-        r_fetch    <= 1'b0;
+        r_ce       <= 1'b0;
         r_ex_done  <= 1'b0;
         r_decoding <= 1'b1;
     end
-    else if(!r_ex_done) begin  // reading instruction from memory
+    else if(!r_fetch && !r_ce) begin  // reading instruction from memory
         r_ce   <= 1'b1;
         r_we   <= 1'b0;
         r_addr <= AR;
     end
-    else if(r_ce) begin
-        IR   <= i_data;
-
-        r_decoding <= 1'b0;
-        r_ce       <= 1'b0;
+    else if(r_decoding && r_ce) begin
+        IR <= i_data;
     end
 end
 
@@ -224,4 +222,5 @@ assign o_w_mem_ref = r_w_mem_ref;
 
 endmodule
 
-// datapath에서 sram으로 addr가 전달되지 않고 있는 문제 해결해야함
+
+// 1틱 signal 만드는 방법이 있나???

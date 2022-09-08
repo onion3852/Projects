@@ -6,10 +6,10 @@ module CPU #(
 )   (
     input clk,
     input reset_n,
-    input i_data,
+    input [DWIDTH-1:0] i_data,
     
-    output o_data,
-    output o_addr,
+    output [DWIDTH-1:0]     o_data,
+    output [ADDR_WIDTH-1:0] o_addr,
     output o_we,
     output o_ce
     );
@@ -77,6 +77,7 @@ datapath DATAPATH (
     .i_is_ind (is_ind),
     .i_is_dir (is_dir),
 
+    .o_ir       (ir),
     .o_data     (data_w),
     .o_addr     (addr_1),
     .o_we_1     (we_1),

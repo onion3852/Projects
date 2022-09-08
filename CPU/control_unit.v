@@ -54,7 +54,7 @@ wire is_done;     // triggering DONE
 wire is_fetch;    // triggering FETCH
 wire is_decode;   // triggering DECODE
 
-wire w_mem_ref = (!ir[15] && (ir[14:12] != 3'd7)) || (i_w_mem_ref);
+wire w_mem_ref = !reset_n ? 1'b0 : (!ir[15] && (ir[14:12] != 3'd7)) || (i_w_mem_ref);
 
 reg w_ind_addr;
 reg w_reg_ref;
@@ -81,6 +81,13 @@ reg r_clr_reg;
 reg r_fetch;
 reg r_execute;
 
+// Reset
+always @ (negedge reset_n) begin
+    if(!reset_n) begin
+        w_reg_ref  <= 1'b0;
+        w_ind_addr <= 1'b0;
+    end
+end
 
 // state transition
 always @ (posedge clk or negedge reset_n) begin
@@ -116,7 +123,7 @@ end
 
 // triggering signals
 assign is_fetch   = (c_state == DONE) || (c_state == IDLE);
-assign is_decode  = (i_decoding);
+assign is_decode  = (c_state == FETCH) && (!w_ind_addr && !w_reg_ref && !w_mem_ref);
 assign is_ind     = (c_state == DECODE) && (w_ind_addr);
 assign is_mem_ref = (c_state == MEM_REF_IND) && (w_mem_ref);
 assign is_reg_ref = (c_state == DECODE) && (w_reg_ref);
