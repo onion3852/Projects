@@ -83,6 +83,8 @@ always @ (*) begin
     else if(r_ex_done) begin
         run = 1'b0;
         SC  = 3'b0;
+
+        r_w_mem_ref = 1'b0;
     end
     else begin
         SC = 3'b0;
@@ -224,3 +226,6 @@ endmodule
 
 
 // 1틱 signal 만드는 방법이 있나???
+
+// 한 instruction cycle이 끝나면 
+// 각종 control signal들을 low로 만드는 부분이 필요함

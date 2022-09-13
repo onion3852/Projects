@@ -54,9 +54,8 @@ wire is_done;     // triggering DONE
 wire is_fetch;    // triggering FETCH
 wire is_decode;   // triggering DECODE
 
-wire w_mem_ref = !reset_n ? 1'b0 : (!ir[15] && (ir[14:12] != 3'd7)) || (i_w_mem_ref);
-
 reg w_ind_addr;
+reg w_mem_ref;
 reg w_reg_ref;
 
 reg [11:0] r_addr;
@@ -81,11 +80,12 @@ reg r_clr_reg;
 reg r_fetch;
 reg r_execute;
 
-// Reset
+// decode signal reset
 always @ (negedge reset_n) begin
     if(!reset_n) begin
         w_reg_ref  <= 1'b0;
         w_ind_addr <= 1'b0;
+        w_mem_ref  <= 1'b0;
     end
 end
 
@@ -127,7 +127,8 @@ assign is_decode  = (c_state == FETCH) && (!w_ind_addr && !w_reg_ref && !w_mem_r
 assign is_ind     = (c_state == DECODE) && (w_ind_addr);
 assign is_mem_ref = (c_state == MEM_REF_IND) && (w_mem_ref);
 assign is_reg_ref = (c_state == DECODE) && (w_reg_ref);
-assign is_done    = (c_state == REG_REF) && (i_ex_done);
+assign is_done    = ((c_state == REG_REF) && (i_ex_done))
+                    || ((c_state == MEM_REF) && (i_ex_done));
 
 // internal control signal and output signal by decoding ir[15:0]
 always @ (*) begin
@@ -135,6 +136,8 @@ always @ (*) begin
         w_ind_addr = 1'b1;
     end
     else if(!ir[15] && (ir[14:12] != 3'd7)) begin  // direct addresing mode, memory-reference
+        w_mem_ref = (c_state == DECODE) ? 1'b1 : 1'b0;
+
         case(ir[14:12])
             3'h1 : begin
                 r_add  = 1'b1;
@@ -193,6 +196,27 @@ always @ (*) begin
     endcase
 end
 
+// signals reset after each operations
+always @ (*) begin
+    if(i_ex_done) begin
+        r_clr_ac  = 1'b0;
+        r_clr_e   = 1'b0;
+        r_comp_ac = 1'b0;
+        r_load_ac = 1'b0;
+        r_cir_r   = 1'b0;
+        r_cir_l   = 1'b0;
+        r_inc_ac  = 1'b0;
+
+        r_add     = 1'b0;
+        r_load    = 1'b0;
+        r_store   = 1'b0;
+        r_branch  = 1'b0;
+        r_isz     = 1'b0;
+
+
+    end
+end
+
 assign o_add     = (w_mem_ref && r_add);
 assign o_load    = (w_mem_ref && r_load);
 assign o_store   = (w_mem_ref && r_store);
@@ -211,7 +235,7 @@ assign o_addr    = r_addr;
 assign o_we_2    = r_we;
 assign o_ce      = r_ce;
 
-assign o_clr_reg = r_clr_reg;
+assign o_clr_reg = (!reset_n && r_clr_reg);
 assign o_fetch   = (is_fetch || r_fetch);
 assign o_execute = r_execute;
 assign o_is_ind  = is_ind;
