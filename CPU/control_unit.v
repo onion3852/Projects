@@ -4,7 +4,6 @@ module control_unit(
     input        clk,
     input        reset_n,
     input        i_w_mem_ref,
-    input        i_decoding,
     input        i_ex_done,
     input [15:0] ir,
 
@@ -185,6 +184,7 @@ end
 always @ (*) begin
     case(c_state)
         IDLE        : r_clr_reg = 1'b1;
+        FETCH       : r_fetch   = 1'b1;
         DECODE      : r_fetch   = 1'b0;
         MEM_REF_IND : begin
             r_we   = 1'b0;
@@ -213,7 +213,11 @@ always @ (*) begin
         r_branch  = 1'b0;
         r_isz     = 1'b0;
 
+        w_reg_ref  = 1'b0;
+        w_mem_ref  = 1'b0;
+        w_ind_addr = 1'b0;
 
+        r_execute  = 1'b0;
     end
 end
 

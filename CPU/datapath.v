@@ -30,7 +30,6 @@ module datapath (
     output        o_we_1,
     output        o_sel_we_1,
     output        o_ce,
-    output        o_decoding,
     output        o_ex_done,
     output        o_w_mem_ref
     );
@@ -173,14 +172,14 @@ always @ (posedge clk) begin
         DR <= i_data;
     end
     else if(i_is_dir && i_execute && i_store && (SC == 3'd1)) begin
-        r_data    <= DR;
-        r_addr    <= AR;
-        r_we      <= 1'b1;
-        r_ex_done <= 1'b1;
+        r_data     <= DR;
+        r_addr     <= AR;
+        r_we       <= 1'b1;
+        r_ex_done  <= 1'b1;
     end
     else if(i_is_dir && i_execute && i_branch && (SC == 3'd1)) begin
-        PC        <= AR;
-        r_ex_done <= 1'b1;
+        PC         <= AR;
+        r_ex_done  <= 1'b1;
     end
     else if(i_is_dir && i_execute && i_isz && (SC == 3'd1)) begin
         DR <= i_data;
@@ -190,12 +189,12 @@ end
 // Memory reference instructions - SC is bigger than 3'b1
 always @ (posedge clk) begin
     if(i_is_dir && i_execute && i_add && (SC == 3'd2)) begin
-        {E, AC}   <= AC + DR;
-        r_ex_done <= 1'b1;
+        {E, AC}    <= AC + DR;
+        r_ex_done  <= 1'b1;
     end
     else if(i_is_dir && i_execute && i_load && (SC == 3'd2)) begin
-        AC        <= DR;
-        r_ex_done <= 1'b1;
+        AC         <= DR;
+        r_ex_done  <= 1'b1;
     end
     else if(i_is_dir && i_execute && i_isz && (SC == 3'd2)) begin
         DR <= DR + 1;
@@ -208,7 +207,15 @@ always @ (posedge clk) begin
         if(DR == 16'b0) begin
             PC <= PC + 1;
         end
-        r_ex_done <= 1'b1;
+        r_ex_done  <= 1'b1;
+    end
+end
+
+// internal control
+always @ (*) begin
+    if(r_ex_done) begin
+        r_decoding <= 1'b0;
+        IR         <= 16'b0;
     end
 end
 
@@ -218,14 +225,10 @@ assign o_addr      = r_addr;
 assign o_we_1      = r_we;
 assign o_sel_we_1  = (!r_ex_done || i_is_dir);  // select o_we_1
 assign o_ce        = r_ce;
-assign o_decoding  = r_decoding;
 assign o_ex_done   = r_ex_done;
 assign o_w_mem_ref = r_w_mem_ref;
 
 endmodule
-
-
-// 1틱 signal 만드는 방법이 있나???
 
 // 한 instruction cycle이 끝나면 
 // 각종 control signal들을 low로 만드는 부분이 필요함

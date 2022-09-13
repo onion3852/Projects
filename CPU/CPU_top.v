@@ -40,7 +40,6 @@ wire branch;
 wire isz;
 wire clr_reg;
 wire fetch;
-wire decode;
 wire execute;
 wire is_ind;
 wire is_dir;
@@ -84,7 +83,6 @@ datapath DATAPATH (
     .o_sel_we_1 (sel_we_1),
     .o_ce       (ce_1),
     .o_ex_done  (ex_done),
-    .o_decoding (decode),
     .o_w_mem_ref(mem_ref)
     );
 
@@ -92,7 +90,6 @@ control_unit CONTROL (
     .clk        (clk),
     .reset_n    (reset_n),
     .i_w_mem_ref(mem_ref),
-    .i_decoding (decode),
     .i_ex_done  (ex_done),
     .ir         (ir),
 
