@@ -50,7 +50,7 @@ reg [2:0]  SC; // Sequence Counter
                // 어쩔 수 없이 필요한 듯
 
 reg [15:0] r_data;
-reg [11:0] r_addr;
+//reg [11:0] r_addr;
 reg        r_we;
 reg        r_ce;
 reg        r_fetch;
@@ -107,7 +107,7 @@ always @ (posedge clk) begin
     else if(!r_fetch && !r_ce) begin  // reading instruction from memory
         r_ce   <= 1'b1;
         r_we   <= 1'b0;
-        r_addr <= AR;
+        //r_addr <= AR;
     end
     else if(r_decoding && r_ce) begin
         IR <= i_data;
@@ -173,7 +173,7 @@ always @ (posedge clk) begin
     end
     else if(i_is_dir && i_execute && i_store && (SC == 3'd1)) begin
         r_data     <= DR;
-        r_addr     <= AR;
+        //r_addr     <= AR;
         r_we       <= 1'b1;
         r_ex_done  <= 1'b1;
     end
@@ -201,7 +201,7 @@ always @ (posedge clk) begin
     end
     else if(i_is_dir && i_execute && i_isz && (SC == 3'd3)) begin
         r_data <= DR;
-        r_addr <= AR;
+        //r_addr <= AR;
         r_we   <= 1'b1;
 
         if(DR == 16'b0) begin
@@ -221,7 +221,7 @@ end
 
 assign o_ir        = IR;
 assign o_data      = r_data;
-assign o_addr      = r_addr;
+assign o_addr      = AR;//r_addr;
 assign o_we_1      = r_we;
 assign o_sel_we_1  = (!r_ex_done || i_is_dir);  // select o_we_1
 assign o_ce        = r_ce;
@@ -232,3 +232,10 @@ endmodule
 
 // 한 instruction cycle이 끝나면 
 // 각종 control signal들을 low로 만드는 부분이 필요함
+
+// 일단 첫 instruction을 구현하긴 함
+
+// datapath에서 sram으로 보내는 ready 신호를 만들고
+// ready가 만족되어야 sram의 o_data가 datapath의 i_data가
+// 되도록 하는 방법???
+// IR <= r_ready ? i_data : IR;  이 부분이 가능할까?
