@@ -135,7 +135,7 @@ always @ (*) begin
         w_ind_addr = 1'b1;
     end
     else if(!ir[15] && (ir[14:12] != 3'd7)) begin  // direct addresing mode, memory-reference
-        w_mem_ref = (c_state == DECODE) ? 1'b1 : 1'b0;
+        w_mem_ref = ((c_state == DECODE) && ir != 16'b0) ? 1'b1 : 1'b0;
 
         case(ir[14:12])
             3'h1 : begin
@@ -183,7 +183,10 @@ end
 // other output logic
 always @ (*) begin
     case(c_state)
-        IDLE        : r_clr_reg = 1'b1;
+        IDLE        : begin
+            r_clr_reg = 1'b1;
+            r_execute = 1'b0;
+        end
         FETCH       : r_fetch   = 1'b1;
         DECODE      : r_fetch   = 1'b0;
         MEM_REF_IND : begin
@@ -193,6 +196,7 @@ always @ (*) begin
         end
         MEM_REF     : r_execute = 1'b1;
         REG_REF     : r_execute = 1'b1;
+        DONE        : r_execute = 1'b0;
     endcase
 end
 
