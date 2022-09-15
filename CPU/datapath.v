@@ -53,6 +53,7 @@ reg [15:0] r_data;
 reg [11:0] r_addr;
 reg        r_we;
 reg        r_ce;
+reg        r_ready;
 reg        r_fetch;
 reg        r_decoding;
 reg        r_ex_done;
@@ -73,6 +74,7 @@ always @ (posedge i_clr_reg) begin
     r_decoding <= 1'b0;
     r_ex_done  <= 1'b0;
     r_ce       <= 1'b0;
+    r_ready    <= 1'b0;
 end
 
 // Sequence Counter &
@@ -95,7 +97,8 @@ always @ (*) begin
 end
 
 // Fetch Instruction & 
-// Increasing PC 
+// Increasing PC &
+// IR gets instruction code 
 always @ (posedge clk) begin
     if(r_fetch) begin
         AR <= PC;
@@ -104,23 +107,17 @@ always @ (posedge clk) begin
         r_decoding <= 1'b1;
         r_ce       <= 1'b0;
     end
-    else if(!r_fetch && !r_ce) begin  // reading instruction from memory
-        r_ex_done  <= 1'b0;
-        r_ce       <= 1'b1;
-        r_we       <= 1'b0;
-        r_addr     <= AR;
+    else if(!r_fetch && r_decoding && i_fetch) begin
+        r_ex_done <= 1'b0;
+        r_ready   <= 1'b1;
+        r_we      <= 1'b0;
+        r_addr    <= AR;
     end
-end
+    else if(r_ready && r_decoding) begin
+        r_ce <= 1'b1;
+    end
 
-// IR gets instruction code &
-// clearing r_decoding
-always @ (*) begin
-    if(r_decoding && r_ce && !i_execute) begin
-        IR = i_data;
-    end
-    else if(i_execute) begin
-        r_decoding = 1'b0;
-    end
+    IR <= r_ready ? i_data : IR;
 end
 
 // Core - Register reference instructions
@@ -226,6 +223,10 @@ always @ (*) begin
         r_ce <= 1'b0;
         IR   <= 16'b0;
     end
+    else if(i_execute) begin
+        r_decoding = 1'b0;
+        r_ready    = 1'b0;
+    end
 end
 
 assign o_ir        = IR;
@@ -247,3 +248,7 @@ endmodule
 // ready가 만족되어야 sram의 o_data가 datapath의 i_data가
 // 되도록 하는 방법???
 // IR <= r_ready ? i_data : IR;  이 부분이 가능할까?
+
+// 아무래도 r_ce를 너무 건드리는 거 같음
+// 진짜 memory접근이 필요할 때만 r_ce를 컨트롤해야 
+// 정상적으로 작동할 거 같음
