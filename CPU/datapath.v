@@ -80,17 +80,11 @@ end
 // Sequence Counter &
 // i_fetch to r_fetch
 always @ (*) begin
-    if(run) begin
-        SC = SC + 1;
-    end
-    else if(r_ex_done) begin
+    if(r_ex_done) begin
         run = 1'b0;
         SC  = 3'b0;
 
         r_w_mem_ref = 1'b0;
-    end
-    else begin
-        SC = 3'b0;
     end
 
     r_fetch = r_decoding ? 1'b0 : i_fetch;
@@ -109,12 +103,12 @@ always @ (posedge clk) begin
     end
     else if(!r_fetch && r_decoding && i_fetch) begin
         r_ex_done <= 1'b0;
-        r_ready   <= 1'b1;
         r_we      <= 1'b0;
         r_addr    <= AR;
     end
-    else if(r_ready && r_decoding) begin
-        r_ce <= 1'b1;
+    else if(!r_ce && r_decoding) begin
+        r_ce    <= 1'b1;
+        r_ready <= 1'b1;
     end
 
     IR <= r_ready ? i_data : IR;
@@ -165,10 +159,12 @@ end
 
 // Memory reference instructions - SC == 3'b1
 always @ (posedge clk) begin
-    if(i_is_ind) begin
+    if(run) begin
+        SC <= SC + 1;
+    end
+    else if(i_is_ind) begin
         IR[11:0]    <= i_data;
         AR          <= i_data;
-        run         <= 1'b1;
         r_w_mem_ref <= 1'b1;
     end
     else if(i_is_dir && i_execute && i_add && (SC == 3'd1)) begin
@@ -227,6 +223,9 @@ always @ (*) begin
         r_decoding = 1'b0;
         r_ready    = 1'b0;
     end
+    else if(i_is_ind || i_is_dir) begin
+        run <= 1'b1;
+    end
 end
 
 assign o_ir        = IR;
@@ -240,15 +239,4 @@ assign o_w_mem_ref = r_w_mem_ref;
 
 endmodule
 
-// 한 instruction cycle이 끝나면 
-// 각종 control signal들을 low로 만드는 부분이 필요함
-
-// sram에서 이전 o_data가 낑겨들어오는게 문제되고 있음
-// datapath에서 sram으로 보내는 ready 신호를 만들고
-// ready가 만족되어야 sram의 o_data가 datapath의 i_data가
-// 되도록 하는 방법???
-// IR <= r_ready ? i_data : IR;  이 부분이 가능할까?
-
-// 아무래도 r_ce를 너무 건드리는 거 같음
-// 진짜 memory접근이 필요할 때만 r_ce를 컨트롤해야 
-// 정상적으로 작동할 거 같음
+// FSM을 어떻게 만들어야 할지 공부
