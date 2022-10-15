@@ -38,7 +38,7 @@ sram_controller slave (
     );
 
 // sram instantiation
-sram_16x8 sram (
+sram sram (
     .addr(SRAM_ADDR),
     .din (SRAM_DIN),
     .dout(SRAM_DOUT),
