@@ -11,5 +11,6 @@ Do simulation to write and read the following data to address 00x to 0fx
 .
 0000 11112
 into the synchronous SRAM from address 0 to address 15. 
+
 Submit 1) Testbenchand 
        2) Simulation Output Waveform.
