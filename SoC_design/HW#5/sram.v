@@ -1,25 +1,27 @@
 module sram_16x8 #(
-    parameter addr_width = 4,
-    parameter word_depth = 16,
-    parameter word_width = 8
+    parameter ADDR_WIDTH = 4,
+    parameter WORD_DEPTH = 16,
+    parameter WORD_WIDTH = 8
 )   (
-    input [addr_width-1:0] addr,
-    input [word_width-1:0] din,
+    input [ADDR_WIDTH-1:0] addr,
+    input [WORD_WIDTH-1:0] din,
     input                  clk,
     input                  we,
 
-    output [word_width-1:0] dout
+    output [WORD_WIDTH-1:0] dout
     );
 
-reg [word_width-1:0] mem [0:word_depth-1];
-reg [word_width-1:0] dout;
+reg [WORD_WIDTH-1:0] mem [0:WORD_DEPTH-1];
+reg [WORD_WIDTH-1:0] dout;
 
+// write
 always @ (posedge clk) begin
     if(!we) begin
-        mem[addr] <= din[word_width-1:0];
+        mem[addr] <= din[WORD_WIDTH-1:0];
     end
 end
 
+// read
 always @ (posedge clk) begin
     if(we) begin
         #1
