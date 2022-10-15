@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 module sram_16x8 #(
     parameter ADDR_WIDTH = 4,
     parameter WORD_DEPTH = 16,
