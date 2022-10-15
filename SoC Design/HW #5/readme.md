@@ -1,3 +1,5 @@
+<HW #5>
+
 Design an AHB-compatible SRAM controller for single data only
 
 Write a testbench to do the simulation as follows
