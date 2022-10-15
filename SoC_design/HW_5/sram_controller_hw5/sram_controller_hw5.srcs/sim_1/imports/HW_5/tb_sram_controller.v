@@ -38,7 +38,7 @@ sram_controller slave (
     );
 
 // sram instantiation
-sram sram (
+sram_16x8 sram (
     .addr(SRAM_ADDR),
     .din (SRAM_DIN),
     .dout(SRAM_DOUT),
@@ -46,9 +46,11 @@ sram sram (
     .we  (SRAM_WE)
     );
 
-always #5 CLK = ~CLK;
+always #5 HCLK = ~HCLK;
 initial begin
-    CLK = 1'b0;
+    HCLK = 1'b0;
+    #10
+    $finish;
 end
 
 endmodule

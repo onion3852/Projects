@@ -46,9 +46,9 @@ sram_16x8 sram (
     .we  (SRAM_WE)
     );
 
-always #5 CLK = ~CLK;
+always #5 HCLK = ~HCLK;
 initial begin
-    CLK = 1'b0;
+    HCLK = 1'b0;
 end
 
 endmodule

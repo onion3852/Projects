@@ -1,0 +1,11 @@
+# compile verilog/system verilog design source files
+verilog xil_defaultlib  \
+"../../../../sram_controller_hw5.srcs/sources_1/imports/HW_5/sram.v" \
+"../../../../sram_controller_hw5.srcs/sources_1/imports/HW_5/sram_controller.v" \
+"../../../../sram_controller_hw5.srcs/sim_1/imports/HW_5/tb_sram_controller.v" \
+
+# compile glbl module
+verilog xil_defaultlib "glbl.v"
+
+# Do not sort compile order
+nosort

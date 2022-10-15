@@ -1,0 +1,9 @@
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/Programs/Work/SoC_Lecture_2022_fall/Homework/SoC_design/HW_5/sram_controller_hw5/sram_controller_hw5.srcs/sources_1/imports/HW_5/sram.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module sram_16x8
+WARNING: [VRFC 10-9336] redeclaration of ANSI port 'dout' is not allowed [D:/Programs/Work/SoC_Lecture_2022_fall/Homework/SoC_design/HW_5/sram_controller_hw5/sram_controller_hw5.srcs/sources_1/imports/HW_5/sram.v:17]
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/Programs/Work/SoC_Lecture_2022_fall/Homework/SoC_design/HW_5/sram_controller_hw5/sram_controller_hw5.srcs/sources_1/imports/HW_5/sram_controller.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module sram_controller
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/Programs/Work/SoC_Lecture_2022_fall/Homework/SoC_design/HW_5/sram_controller_hw5/sram_controller_hw5.srcs/sim_1/imports/HW_5/tb_sram_controller.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_sram_controller
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/Programs/Work/SoC_Lecture_2022_fall/Homework/SoC_design/HW_5/sram_controller_hw5/sram_controller_hw5.sim/sim_1/behav/xsim/glbl.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module glbl
