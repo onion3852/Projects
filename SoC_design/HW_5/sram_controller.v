@@ -26,7 +26,6 @@ module sram_controller #(
     reg [WORD_WIDTH-1:0] r_wdata;
     reg [WORD_WIDTH-1:0] r_rdata;
     reg                  r_ready;
-    reg                  r_hready;
     reg                  r_sram_we;
     reg                  r_we;
 
@@ -38,7 +37,6 @@ module sram_controller #(
         r_addr  <= haddr;
         r_rdata <= sram_dout;
         r_sram_we <= r_we;
-        r_hready  <= r_ready;
 
         // counting wait cycle &
         // write data control
@@ -47,7 +45,8 @@ module sram_controller #(
             r_we   <= 1'b1;  // write enable high
         end
         else if(!r_ready) begin
-            r_wait  <= r_wait + 1;
+            r_wait <= r_wait + 1;
+            r_wr   <= r_wr;
 
             if(r_wr) begin
                 r_wdata <= hwdata;
@@ -71,22 +70,21 @@ module sram_controller #(
         end
     end
 
+    // address phase
     always @ (posedge hclk) begin
-        if(hwrite) begin
+        if(hwrite && r_ready) begin
             r_sram_addr <= r_addr;
             r_ready   <= 1'b0;
-            r_wr      <= 1'b1;  // write
         end
-        else if(!hwrite) begin
+        else if(!hwrite && r_ready) begin
             r_sram_addr <= r_addr;
             r_ready   <= 1'b0;
-            r_wr      <= 1'b0;  // read
         end
     end
 
     // output
     assign hrdata    = r_rdata;
-    assign hready    = r_hready;
+    assign hready    = r_ready;
     assign sram_din  = r_wdata;
     assign sram_addr = r_sram_addr;
     assign sram_clk  = hclk;

@@ -21,6 +21,10 @@ wire [WORD_WIDTH-1:0] SRAM_DIN;
 wire                  SRAM_CLK;
 wire                  SRAM_WE;
 
+integer file_pointer;
+integer num;
+reg [12:0] test_vector [13:0];
+
 // sram_controller instantiation
 sram_controller slave (
     .haddr    (HADDR),
@@ -47,8 +51,22 @@ sram_16x8 sram (
     );
 
 always #5 HCLK = ~HCLK;
+
+always @ (posedge HCLK) begin
+    #1 {HWRITE, HADDR, HWDATA} <= test_vector[num];
+    #1 num = num + 1;
+end
+
 initial begin
+    $readmemb("in.txt", test_vector);
+    file_pointer = $fopen("out.txt");
+
     HCLK = 1'b0;
+    num  = 0;
+
+    #160
+    $fclose("out.txt");
+    $finish;
 end
 
 endmodule

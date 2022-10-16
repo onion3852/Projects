@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="tb_sram_controller_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="tb_sram_controller" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="107.766 ns"></ZoomStartTime>
+      <ZoomEndTime time="267.767 ns"></ZoomEndTime>
+      <Cursor1Time time="160.000 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="217"></NameColumnWidth>
+      <ValueColumnWidth column_width="155"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="20" />
+   <wave_markers>
+      <marker time="45000" label="" />
+   </wave_markers>
+   <wvobject type="divider" fp_name="divider24">
+      <obj_property name="label">AHB Signals</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="BkColor">#A0A0A4</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_sram_controller/HCLK" type="logic">
+      <obj_property name="ElementShortName">HCLK</obj_property>
+      <obj_property name="ObjectShortName">HCLK</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_sram_controller/HWRITE" type="logic">
+      <obj_property name="ElementShortName">HWRITE</obj_property>
+      <obj_property name="ObjectShortName">HWRITE</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_sram_controller/HADDR" type="array">
+      <obj_property name="ElementShortName">HADDR[3:0]</obj_property>
+      <obj_property name="ObjectShortName">HADDR[3:0]</obj_property>
+      <obj_property name="Radix">BINARYRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_sram_controller/HWDATA" type="array">
+      <obj_property name="ElementShortName">HWDATA[7:0]</obj_property>
+      <obj_property name="ObjectShortName">HWDATA[7:0]</obj_property>
+      <obj_property name="Radix">BINARYRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_sram_controller/HRDATA" type="array">
+      <obj_property name="ElementShortName">HRDATA[7:0]</obj_property>
+      <obj_property name="ObjectShortName">HRDATA[7:0]</obj_property>
+      <obj_property name="Radix">BINARYRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_sram_controller/HREADY" type="logic">
+      <obj_property name="ElementShortName">HREADY</obj_property>
+      <obj_property name="ObjectShortName">HREADY</obj_property>
+   </wvobject>
+   <wvobject type="divider" fp_name="divider18">
+      <obj_property name="label">Local Signals</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="BkColor">#A0A0A4</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_sram_controller/sram/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_sram_controller/sram/we" type="logic">
+      <obj_property name="ElementShortName">we</obj_property>
+      <obj_property name="ObjectShortName">we</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_sram_controller/sram/addr" type="array">
+      <obj_property name="ElementShortName">addr[3:0]</obj_property>
+      <obj_property name="ObjectShortName">addr[3:0]</obj_property>
+      <obj_property name="Radix">BINARYRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_sram_controller/sram/din" type="array">
+      <obj_property name="ElementShortName">din[7:0]</obj_property>
+      <obj_property name="ObjectShortName">din[7:0]</obj_property>
+      <obj_property name="Radix">BINARYRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_sram_controller/sram/dout" type="array">
+      <obj_property name="ElementShortName">dout[7:0]</obj_property>
+      <obj_property name="ObjectShortName">dout[7:0]</obj_property>
+      <obj_property name="Radix">BINARYRADIX</obj_property>
+   </wvobject>
+   <wvobject type="divider" fp_name="divider26">
+      <obj_property name="label">SRAM</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="BkColor">#A0A0A4</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_sram_controller/sram/mem[0]" type="array">
+      <obj_property name="ElementShortName">[0][7:0]</obj_property>
+      <obj_property name="ObjectShortName">[0][7:0]</obj_property>
+      <obj_property name="Radix">BINARYRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_sram_controller/sram/mem[1]" type="array">
+      <obj_property name="ElementShortName">[1][7:0]</obj_property>
+      <obj_property name="ObjectShortName">[1][7:0]</obj_property>
+      <obj_property name="Radix">BINARYRADIX</obj_property>
+   </wvobject>
+   <wvobject type="divider" fp_name="divider25">
+      <obj_property name="label">checking</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_sram_controller/slave/r_wait" type="array">
+      <obj_property name="ElementShortName">r_wait[1:0]</obj_property>
+      <obj_property name="ObjectShortName">r_wait[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_sram_controller/slave/r_ready" type="logic">
+      <obj_property name="ElementShortName">r_ready</obj_property>
+      <obj_property name="ObjectShortName">r_ready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_sram_controller/slave/r_wr" type="logic">
+      <obj_property name="ElementShortName">r_wr</obj_property>
+      <obj_property name="ObjectShortName">r_wr</obj_property>
+   </wvobject>
+</wave_config>
