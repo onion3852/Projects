@@ -22,7 +22,7 @@ wire                  SRAM_CLK;
 wire                  SRAM_WE;
 
 integer file_pointer;
-integer num;
+integer i, num;
 reg [12:0] test_vector [13:0];
 
 // sram_controller instantiation
@@ -61,10 +61,14 @@ initial begin
     $readmemb("in.txt", test_vector);
     file_pointer = $fopen("out.txt");
 
-    HCLK = 1'b0;
-    num  = 0;
+    HCLK = 1'b0;  num  = 0;
+    tb_sram_controller.slave.r_ready = 1;  // initial hready setting
 
     #160
+    for (i = 0; i < 2; i = i + 1) begin
+        $fdisplay(file_pointer, "%b", tb_sram_controller.sram.mem[i]);
+    end
+
     $fclose("out.txt");
     $finish;
 end
