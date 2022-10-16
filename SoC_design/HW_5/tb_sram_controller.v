@@ -64,7 +64,7 @@ initial begin
     HCLK = 1'b0;  num  = 0;
     tb_sram_controller.slave.r_ready = 1;  // initial hready setting
 
-    #160
+    #145
     for (i = 0; i < 2; i = i + 1) begin
         $fdisplay(file_pointer, "%b", tb_sram_controller.sram.mem[i]);
     end
