@@ -1,2 +1,2 @@
-00001111
-00001110
+data read from address 0000x is 00001111
+data read from address 0001x is 00001110

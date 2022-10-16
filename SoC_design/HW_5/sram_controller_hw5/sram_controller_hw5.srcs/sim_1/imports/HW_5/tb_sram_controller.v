@@ -66,7 +66,8 @@ initial begin
     
     #145
     for (i = 0; i < 2; i = i + 1) begin
-        $fdisplay(file_pointer, "%b", tb_sram_controller.sram.mem[i]);  // initial hready setting
+        $fdisplay(file_pointer, "data read from address %4bx is %b", 
+                  i, tb_sram_controller.sram.mem[i]);
     end
 
     $fclose("out.txt");
