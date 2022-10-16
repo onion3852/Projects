@@ -1,0 +1,18 @@
+#-----------------------------------------------------------
+# Vivado v2022.1 (64-bit)
+# SW Build 3526262 on Mon Apr 18 15:48:16 MDT 2022
+# IP Build 3524634 on Mon Apr 18 20:55:01 MDT 2022
+# Start of session at: Mon Oct 17 02:10:36 2022
+# Process ID: 20564
+# Current directory: D:/Programs/Work/SoC_Lecture_2022_fall/Homework/SoC_design/HW_5/sram_controller_hw5
+# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent18688 D:\Programs\Work\SoC_Lecture_2022_fall\Homework\SoC_design\HW_5\sram_controller_hw5\sram_controller_hw5.xpr
+# Log file: D:/Programs/Work/SoC_Lecture_2022_fall/Homework/SoC_design/HW_5/sram_controller_hw5/vivado.log
+# Journal file: D:/Programs/Work/SoC_Lecture_2022_fall/Homework/SoC_design/HW_5/sram_controller_hw5\vivado.jou
+# Running On: DESKTOP-IGKF5AA, OS: Windows, CPU Frequency: 2096 MHz, CPU Physical cores: 12, Host memory: 16483 MB
+#-----------------------------------------------------------
+start_gui
+open_project D:/Programs/Work/SoC_Lecture_2022_fall/Homework/SoC_design/HW_5/sram_controller_hw5/sram_controller_hw5.xpr
+update_compile_order -fileset sources_1
+launch_simulation
+open_wave_config D:/Programs/Work/SoC_Lecture_2022_fall/Homework/SoC_design/HW_5/sram_controller_hw5/tb_sram_controller_behav.wcfg
+source tb_sram_controller.tcl
