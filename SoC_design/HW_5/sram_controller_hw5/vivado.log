@@ -76,3 +76,7 @@ $finish called at time : 145 ns : File "D:/Programs/Work/SoC_Lecture_2022_fall/H
 INFO: [USF-XSim-96] XSim completed. Design snapshot 'tb_sram_controller_behav' loaded.
 INFO: [USF-XSim-97] XSim simulation ran for 1000ns
 launch_simulation: Time (s): cpu = 00:00:09 ; elapsed = 00:00:10 . Memory (MB): peak = 1583.949 ; gain = 43.973
+close_sim
+INFO: [Simtcl 6-16] Simulation closed
+exit
+INFO: [Common 17-206] Exiting Vivado at Mon Oct 17 02:37:46 2022...

@@ -16,3 +16,4 @@ update_compile_order -fileset sources_1
 launch_simulation
 open_wave_config D:/Programs/Work/SoC_Lecture_2022_fall/Homework/SoC_design/HW_5/sram_controller_hw5/tb_sram_controller_behav.wcfg
 source tb_sram_controller.tcl
+close_sim

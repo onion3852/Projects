@@ -1,0 +1,3 @@
+Time resolution is 1 ps
+WARNING: File/Multi-channel descriptor (779384948) passed to $fclose in file D:/Programs/Work/SoC_Lecture_2022_fall/Homework/SoC_design/HW_5/sram_controller_hw5/sram_controller_hw5.srcs/sim_1/imports/HW_5/tb_sram_controller.v at line 73 is not valid.
+$finish called at time : 145 ns : File "D:/Programs/Work/SoC_Lecture_2022_fall/Homework/SoC_design/HW_5/sram_controller_hw5/sram_controller_hw5.srcs/sim_1/imports/HW_5/tb_sram_controller.v" Line 74
