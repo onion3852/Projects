@@ -1,8 +1,21 @@
 #include <stdio.h>
+#include <SSDC.h>
 
 int main(void)
 {
-    printf("SoC HW#8 test !!!\n");
+    int global_time = 0;
 
+    // array of each device
+    int sram = {};
+    int dram = {};
+    int nand = {};
+
+    // fscanf;
+
+    while (1)
+    {
+        
+    }
+    
     return 0;
 }
