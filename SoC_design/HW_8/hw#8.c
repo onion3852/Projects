@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "SSDC.h"
 
-struct file
+struct host_request
     {
         int name;
         int w_r;
@@ -11,15 +11,28 @@ struct file
 
 int main(void)
 {
+    // time
     int global_time = 0;
     int time        = 0;
     
+    int file_num = 0;
+    int sram_num = 0;
+    int dram_num = 0;
+    int nand_num = 0;
+    int temp_p = 0;  // pcieq temp variable
+    int temp_s = 0;  // sramq temp variable
+    int temp_d = 0;  // dramq temp variable
+    int temp_n = 0;  // nandq temp variable
+
     // files
-    struct file file[3];
+    struct host_request file[3];
     FILE * fp;
 
     // busy & empty
     int pcieq_empty;
+    int sramq_empty;
+    int dramq_empty;
+    int nandq_empty;
     int sram_w_busy;
     int sram_r_busy;
     int dram_w_busy;
@@ -39,6 +52,8 @@ int main(void)
 
         pcieq_empty = 0;
         sram_w_busy = 1;
+
+        temp_p      = file[0].t_arrival;
         time        = file[i].t_arrival;
         global_time = time;
 
@@ -57,7 +72,7 @@ int main(void)
     while (pcieq_empty || sram_w_busy || sram_r_busy || dram_w_busy || nand_w_busy)
     {
         process_pcieq(time, pcieq_empty, sram_w_busy);
-        process_sramq();
+        process_sramq(time, global_time, temp_p, sramq_empty, sram_w_busy, sram_r_busy, sram_num, sram[sram_num], file_num, file[file_num]);
         process_dramq();
         process_nandq();
 
@@ -75,8 +90,9 @@ int main(void)
 void process_pcieq(int time, int empty, int busy) 
 {
     if(!empty && !busy){
-        if(time){
-
+        // new file write to sram strats
+        if(time?){
+        busy = 1;
         }
     }
     else if(empty){
@@ -84,9 +100,37 @@ void process_pcieq(int time, int empty, int busy)
     }
 }
 
-void process_sramq()
+void process_sramq(int time, int global_time, int temp_p, int empty, int w_busy, int r_busy, int sram_num, int sram[sram_num], int file_num, struct host_request file[file_num])
 {
-    
+    if(!empty && w_busy && (time >= temp_p)){ // ready for next request
+        sram_num ++; 
+        temp_p = sram[sram_num];
+
+        // clear sram array for completed request
+        file[file_num].name      = NULL;
+        file[file_num].w_r       = NULL;
+        file[file_num].size      = NULL;
+        file[file_num].t_arrival = NULL;
+
+        global_time = time;
+        w_busy      = 0;
+        
+        return;
+    }
+    if(!empty && !w_busy){
+        if(time){
+            w_busy = 1;
+            global_time = time;
+        }
+
+        return;
+    }
+    else if(!empty && !r_busy){
+        return;
+    }
+    else if(empty){
+        return;
+    }
 }
 
 void process_dramq()
