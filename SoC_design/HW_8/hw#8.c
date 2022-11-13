@@ -72,7 +72,7 @@ int main(void)
     while (pcieq_empty || sram_w_busy || sram_r_busy || dram_w_busy || nand_w_busy)
     {
         process_pcieq(time, pcieq_empty, sram_w_busy);
-        process_sramq(time, global_time, temp_p, sramq_empty, sram_w_busy, sram_r_busy, sram_num, sram[sram_num], file_num, file[file_num]);
+        process_sramq(time, global_time, temp_p, sramq_empty, sram_w_busy, sram_r_busy, sram_num, sram[sram_num], file_num);
         process_dramq();
         process_nandq();
 
@@ -86,7 +86,8 @@ int main(void)
     return 0;
 }
 
-// function
+
+// function part
 void process_pcieq(int time, int empty, int busy) 
 {
     if(!empty && !busy){
@@ -100,7 +101,8 @@ void process_pcieq(int time, int empty, int busy)
     }
 }
 
-void process_sramq(int time, int global_time, int temp_p, int empty, int w_busy, int r_busy, int sram_num, int sram[sram_num], int file_num, struct host_request file[file_num])
+void process_sramq(int time, int global_time, int temp_p, int empty, int w_busy, int r_busy, 
+                   int sram_num, int sram[sram_num], int file_num, struct &file[file_num])
 {
     if(!empty && w_busy && (time >= temp_p)){ // ready for next request
         sram_num ++; 
@@ -111,6 +113,7 @@ void process_sramq(int time, int global_time, int temp_p, int empty, int w_busy,
         file[file_num].w_r       = NULL;
         file[file_num].size      = NULL;
         file[file_num].t_arrival = NULL;
+        file_num++;
 
         global_time = time;
         w_busy      = 0;
