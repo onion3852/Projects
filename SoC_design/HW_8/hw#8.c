@@ -9,7 +9,7 @@ struct host_request
         int t_arrival;
     };
 
-void process_pcieq(int time, int global_time, int p_empty, int s_empty, int w_busy, int sram_num, int *sram, int file_num, struct host_request *q);
+void process_pcieq(int time, int *global_time, int *p_empty, int *s_empty, int *w_busy, int *sram_num, int *sram, int *file_num, struct host_request *q);
 
 int main(void)
 {
@@ -75,10 +75,9 @@ int main(void)
         printf("--------------------\n");
         printf("file_num is %d\n", file_num);
         printf("sram_num is %d\n", sram_num);
-        printf("sram[sram_num] is %d\n", sram[sram_num]);
         printf("time is %d\n", time);
         printf("--------------------\n\n\n");
-        process_pcieq(time, global_time, pcieq_empty, sramq_empty, sram_w_busy, sram_num, sram, file_num, &file[file_num]);
+        process_pcieq(time, &global_time, &pcieq_empty, &sramq_empty, &sram_w_busy, &sram_num, sram, &file_num, &file[file_num]);
       //process_sramq(time, global_time, sram_w_busy, sram_num, sram[sram_num], file_num, &file[file_num]);
       //process_dramq();
       //process_nandq();
@@ -90,51 +89,48 @@ int main(void)
 
 
 // function part
-void process_pcieq(int time, int global_time, int p_empty, int s_empty, int w_busy, int sram_num, int *sram, int file_num, struct host_request *q) 
+void process_pcieq(int time, int *global_time, int *p_empty, int *s_empty, int *w_busy, int *sram_num, int *sram, int *file_num, struct host_request *q) 
 {
-    if(w_busy && (time >= sram[sram_num])){
+    if(*w_busy && (time >= sram[*sram_num])){
         // sram write done...
         // clear pcieq of completed request
-        printf("file 1 is %d, %d, %d, %d\n", q->name, q->w_r, q->size, q->t_arrival);
-        if(file_num <= 2){
+        printf("first condition!!!\n");
+        if(*file_num <= 2){
             q -> name      = 0;
             q -> w_r       = 0;
             q -> size      = 0;
             q -> t_arrival = 0;
-            file_num++;
+            *file_num++;
 
-            global_time = time;
-            w_busy      = 0;
-            s_empty     = 1;
+            *global_time = time;
+            *w_busy      = 0;
+            *s_empty     = 1;
 
             // clear sram array of completed request 
             *sram = 0;
-            printf("file_num is %d\n", file_num);
-            printf("file 1 is %d, %d, %d, %d\n", q->name, q->w_r, q->size, q->t_arrival);
-            return;
+            printf("sram_num is %d\n", *sram_num);
+            printf("file_num is %d\n", *file_num);
+            printf("global time is %d\n", *global_time);
+            printf("sram[sram_num]is %d\n", sram[*sram_num]);
         }
-        printf("first condition!!!\n");
-        return;
     }
-    else if(w_busy && (time < sram[sram_num])){
+    else if(*w_busy && (time < sram[*sram_num])){
         printf("second condition!!!\n");
-        printf("sram[sram_num]is %d\n", sram[sram_num]);
-        return;
+        printf("sram[sram_num]is %d\n", sram[*sram_num]);
     }
-    else if(!w_busy){
+    else if(!*w_busy){
         printf("third condition is running!!!\n");
-        if((file_num <= 2)){
+        if((*file_num <= 2)){
             // start sram write for next file
             // sramq becomes not empty
-            sram_num++;
+            *sram_num++;
             // ###################################################### sram배열의 다음내용을 time + t_SRAM_W 으로 저장하는 구문 필요
-            w_busy  = 1;
-            s_empty = 0;
+            *w_busy  = 1;
+            *s_empty = 0;
         }
-        p_empty = 1;
-
-        return;
+        *p_empty = 1;
     }
+    return;
 }
 
 //void process_sramq(int time, int global_time, int temp_p, int w_busy, int sram_num, int sram[sram_num], int file_num, struct host_request *q)
