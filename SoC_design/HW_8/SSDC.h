@@ -1,14 +1,6 @@
-#ifndef _SSDC.H_
+#ifndef _SSDC_h_
 
-#define _SSDC.H_
-
-struct host_req
-{
-    int name;
-    int w_r;
-    int size;
-    int t_arrival;
-};
+#define _SSDC_h_
 
 #define t_SRAM_W 4096
 #define t_SRAM_R 4096

@@ -10,6 +10,7 @@ struct host_request
     };
 
 void process_pcieq(int time, int *global_time, int *p_empty, int *s_empty, int *w_busy, int *sram_num, int *sram, int *file_num, struct host_request *q);
+// void process_sramq();
 
 int main(void)
 {
@@ -70,7 +71,7 @@ int main(void)
     printf("sram_num is %d\n", sram_num);
     printf("sram[sram_num] is %d\n", sram[sram_num]);
 
-    while (/*!pcieq_empty || !sramq_empty || !dramq_empty || !nandq_empty || sram_w_busy || dram_w_busy || nand_w_busy*/time < 4100)
+    while (/*!pcieq_empty || !sramq_empty || !dramq_empty || !nandq_empty || sram_w_busy || dram_w_busy || nand_w_busy*/time < 8200)
     {
         printf("--------------------\n");
         printf("file_num is %d\n", file_num);
@@ -100,68 +101,72 @@ void process_pcieq(int time, int *global_time, int *p_empty, int *s_empty, int *
             q -> w_r       = 0;
             q -> size      = 0;
             q -> t_arrival = 0;
-            *file_num++;
+            (*file_num)++;
 
-            *global_time = time;
-            *w_busy      = 0;
-            *s_empty     = 1;
+            *global_time = time;    // sram write done time is now the global time 
+            *w_busy      = 0;       // sram write port isn't busy
+            *s_empty     = 1;       // sramq is empty
 
             // clear sram array of completed request 
-            *sram = 0;
+            sram[*sram_num] = 0;
+
             printf("sram_num is %d\n", *sram_num);
             printf("file_num is %d\n", *file_num);
             printf("global time is %d\n", *global_time);
             printf("sram[sram_num]is %d\n", sram[*sram_num]);
-        }
-    }
-    else if(*w_busy && (time < sram[*sram_num])){
-        printf("second condition!!!\n");
-        printf("sram[sram_num]is %d\n", sram[*sram_num]);
-    }
-    else if(!*w_busy){
-        printf("third condition is running!!!\n");
-        if((*file_num <= 2)){
+        
             // start sram write for next file
             // sramq becomes not empty
-            *sram_num++;
-            // ###################################################### sram배열의 다음내용을 time + t_SRAM_W 으로 저장하는 구문 필요
+            (*sram_num)++;
+            printf("start new file write to sram!!!\n");
+            printf("sram_num is %d\n", *sram_num);
+            sram[*sram_num] = time + t_SRAM_W;
             *w_busy  = 1;
             *s_empty = 0;
         }
-        *p_empty = 1;
+    }
+    else if(*w_busy && (time < sram[*sram_num])){
+        printf("sram writting is in progress!!!\n");
+        printf("writting end time is %d\n", sram[*sram_num]);
+    }
+    else if(!*w_busy){
+        if((*file_num > 2)){
+            // pcieq is empty now because all sram write task is done
+            *p_empty = 1;
+        }
     }
     return;
 }
 
-//void process_sramq(int time, int global_time, int temp_p, int w_busy, int sram_num, int sram[sram_num], int file_num, struct host_request *q)
-//{
-//    if(w_busy && (time >= temp_p)){
-//        // sram write done...
-//        // clear pcieq of completed request
-//        if(file_num <= 2){
-//            q -> name      = NULL;
-//            q -> w_r       = NULL;
-//            q -> size      = NULL;
-//            q -> t_arrival = NULL;
-//            file_num++;
-//
-//            global_time = time;
-//            w_busy      = 0;
-//        }
-//        return;
-//    }
-//    if(!w_busy){
-//        if((file_num <= 2)){
-//            // start sram write for next file 
-//            sram_num ++; 
-//            temp_p = sram[sram_num];
-//            
-//            w_busy = 1;
-//        }
-//        return;
-//    }
-//}
-//
+void process_sramq(int time, int global_time, int temp_p, int w_busy, int sram_num, int sram[sram_num], int file_num, struct host_request *q)
+{
+    if(w_busy && (time >= temp_p)){
+        // sram write done...
+        // clear pcieq of completed request
+        if(file_num <= 2){
+            q -> name      = 0;
+            q -> w_r       = 0;
+            q -> size      = 0;
+            q -> t_arrival = 0;
+            file_num++;
+
+            global_time = time;
+            w_busy      = 0;
+        }
+        return;
+    }
+    if(!w_busy){
+        if((file_num <= 2)){
+            // start sram write for next file 
+            sram_num ++; 
+            temp_p = sram[sram_num];
+            
+            w_busy = 1;
+        }
+        return;
+    }
+}
+
 //void process_dramq()
 //{
 //    
