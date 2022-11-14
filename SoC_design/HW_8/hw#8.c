@@ -28,8 +28,12 @@ int main(void)
     struct host_request file[3];
     FILE * fp;
 
-    // busy & empty
+    // empty
     int pcieq_empty;
+    int sramq_empty;
+    int dramq_empty;
+    int nandq_empty;
+    // busy
     int sram_w_busy;
     int dram_w_busy;
     int nand_w_busy;
@@ -48,27 +52,23 @@ int main(void)
 
         pcieq_empty = 0;
         sram_w_busy = 1;
-
-        temp_p      = file[0].t_arrival;
-        time        = file[i].t_arrival;
-        global_time = time;
-
         if(i == 0){
             sram[i] = sram[i] + t_SRAM_W;
+            temp_s  = sram[0];
         }
-        else{
-            sram[i] = sram[i-1] + t_SRAM_W;
-        }
+
+        time        = file[i].t_arrival;
+        global_time = time;
     }
     fclose(fp);
     printf("time is %d\n", time);
     printf("global time is %d\n", global_time);
     printf("%d, %d, %d\n", sram[0], sram[1], sram[2]);
 
-    while (pcieq_empty || sram_w_busy || dram_w_busy || nand_w_busy)
+    while (!pcieq_empty || sram_w_busy || dram_w_busy || nand_w_busy)
     {
-        process_pcieq(time, pcieq_empty, sram_w_busy);
-        process_sramq(time, global_time, temp_p, sram_w_busy, sram_num, sram[sram_num], file_num, &file[file_num]);
+        process_pcieq(time, global_time, pcieq_empty, sram_w_busy, sram_num, sram[sram_num], file_num, &file[file_num]);
+        process_sramq(time, global_time, sram_w_busy, sram_num, sram[sram_num], file_num, &file[file_num]);
         process_dramq();
         process_nandq();
 
@@ -77,40 +77,57 @@ int main(void)
         time++;
     }
     
-    printf("result global time is %d ns\n", global_time);
+    printf("global time is %d ns\n", global_time);
 
     return 0;
 }
 
 
 // function part
-void process_pcieq(int time, int empty, int busy) 
+void process_pcieq(int time, int global_time, int p_empty, int w_busy, int sram_num, int sram[sram_num], int file_num, struct host_request *q) 
 {
-    if(!empty && !busy){
-        // new file write to sram strats
-        if(time?){
-        busy = 1;
+    if(w_busy && (time >= sram[sram_num])){
+        // sram write done...
+        // clear pcieq of completed request
+        if(file_num <= 2){
+            q -> name      = 0;
+            q -> w_r       = 0;
+            q -> size      = 0;
+            q -> t_arrival = 0;
+            file_num++;
+
+            global_time = time;
+            w_busy      = 0;
+            sram_em
         }
+        return;
     }
-    else if(empty){
-        busy = 0;
+    if(!w_busy){
+        if((file_num <= 2)){
+            // start sram write for next file 
+            sram_num ++; 
+            
+            w_busy = 1;
+        }
+        return;
     }
 }
 
 void process_sramq(int time, int global_time, int temp_p, int w_busy, int sram_num, int sram[sram_num], int file_num, struct host_request *q)
 {
-    if(w_busy && (time >= temp_p)){ 
+    if(w_busy && (time >= temp_p)){
         // sram write done...
         // clear pcieq of completed request
-        q -> name      = NULL;
-        q -> w_r       = NULL;
-        q -> size      = NULL;
-        q -> t_arrival = NULL;
-        file_num++;
+        if(file_num <= 2){
+            q -> name      = NULL;
+            q -> w_r       = NULL;
+            q -> size      = NULL;
+            q -> t_arrival = NULL;
+            file_num++;
 
-        global_time = time;
-        w_busy      = 0;
-        
+            global_time = time;
+            w_busy      = 0;
+        }
         return;
     }
     if(!w_busy){
@@ -121,8 +138,8 @@ void process_sramq(int time, int global_time, int temp_p, int w_busy, int sram_n
             
             w_busy = 1;
         }
-    }
         return;
+    }
 }
 
 void process_dramq()
