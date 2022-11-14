@@ -6,33 +6,29 @@ void process_pcieq(int time, int *global_time, int *p_empty, int *s_empty, int *
 {
     if(*s_w_busy && (time < sram[*sram_num]) && (*sram_num < 3)){
         // sram writting is in progress
-        printf("SRAM writting for file[%d] is in progress!!!\n", *sram_num);
-        printf("SRAM writting for file[%d] end time is %d / current time is %d\n", *sram_num, sram[*sram_num], time);
+        printf("SRAM writting for file[%d]..... end time : %d ns\n", *sram_num, sram[*sram_num]);
     }
     else if(!*s_w_busy && !*p_empty && (*sram_num < 3)){
         // sram write task is done.
+        // delete the completed task in pcieq
+        q -> name      = 0;
+        q -> w_r       = 0;
+        q -> size      = 0;
+        q -> t_arrival = 0;
+        (*file_num)++;  // move to next file
+
         // if sramq is empty(sram write port isn't busy) while pcieq isn't,
         // sramq will get new task
-        printf("sram write of file[%d] will start !\n", *sram_num);
+        printf("SRAM write for file[%d] will start...\n", *sram_num);
         sram[*sram_num] = time + t_SRAM_W - 1;
         printf("end time will be %d ns\n", sram[*sram_num]);
         *s_w_busy  = 1;
         *s_empty = 0;
-
-        // delete the completed task in pcieq
-        if(*file_num <= 2){
-            q -> name      = 0;
-            q -> w_r       = 0;
-            q -> size      = 0;
-            q -> t_arrival = 0;
-            (*file_num)++;  // move to next file
-        }
     }
-    else if(!*s_w_busy){
-        if((*file_num > 2)){
+    else if(!*s_w_busy && (*sram_num >= 3)){
             // pcieq is empty now because all sram write task is done
             *p_empty = 1;
-        }
+            *s_empty = 1;
     }
 
     return;
@@ -43,7 +39,7 @@ void process_sramq(int time, int *global_time, int *s_empty, int *d_empty, int *
 {
     if(*s_w_busy && (time == sram[*sram_num])){
         // sram write done, sramq is empty and write port isn't busy now
-        printf("SRAM write for file[%d] is done !\n", *sram_num);
+        printf("SRAM write for file[%d] is done!!!\n", *sram_num);
         *s_w_busy = 0;
         *s_empty  = 1;
         // dram write of first file will start
@@ -62,7 +58,7 @@ void process_sramq(int time, int *global_time, int *s_empty, int *d_empty, int *
         // dram write task is done.
         // if dramq is empty(dram write port isn't busy) while other task is left,
         // dramq will get new task
-        printf("dram write of file[%d] will start !\n", *dram_num);
+        printf("DRAM write of file[%d] will start...\n", *dram_num);
         dram[*dram_num] = time + t_DRAM_W - 1;
         printf("end time will be %d ns\n", dram[*dram_num]);
         *d_w_busy = 1;
@@ -70,8 +66,7 @@ void process_sramq(int time, int *global_time, int *s_empty, int *d_empty, int *
         }
     else if(*d_w_busy && (time < dram[*dram_num]) && (*dram_num < 3)){
         // dram writting is in progress
-        printf("DRAM writting for file[%d] is in progress!!!\n", *dram_num);
-        printf("DRAM writting for file[%d] end time is %d / current time is %d\n", *dram_num, dram[*dram_num], time);
+        printf("DRAM writting for file[%d]..... end time : %d ns\n", *dram_num, dram[*dram_num]);
     }
 
     return;
@@ -82,7 +77,7 @@ void process_dramq(int time, int *global_time, int *d_empty, int *n_empty, int *
 {
     if(*d_w_busy && (time == dram[*dram_num])){
         // dram write done, dramq is empty and write port isn't busy now
-        printf("DRAM write for file[%d] is done !\n", *dram_num);
+        printf("DRAM write for file[%d] is done!!!\n", *dram_num);
         *d_w_busy = 0;
         *d_empty  = 1;
         // if dram write tasks remain, dramq will not become empty
@@ -121,17 +116,16 @@ void process_nandq(int time, int *global_time, int *n_empty, int *n_w_busy, int 
 {
     if(*n_w_busy && (time < nand[*nand_num]) && (*nand_num <= 2)){
         // nand writting is in progress
-        printf("NAND writting for file[%d] is in progress!!!\n", *nand_num);
-        printf("NAND writting for file[%d] end time is %d / current time is %d\n", *nand_num, nand[*nand_num], time);
+        printf("NAND writting for file[%d]..... end time : %d ns\n", *nand_num, nand[*nand_num]);
     }
     else if(*n_w_busy && (time == nand[*nand_num])){
-        // nand write done, nandq is empty and write port isn't busy now
-        printf("NAND write for file[%d] is done !\n", *nand_num);
+        // nand write done, nandq is empty(but it may have multiple task) and write port isn't busy now
+        printf("NAND write for file[%d] is done!!!\n", *nand_num);
         *n_w_busy = 0;
         *n_empty  = 1;
         // if nand write tasks remain, nandq will not become empty
         // and next file write will begin
-        if(!*n_w_busy && *nand_num < 2){
+        if(!*n_w_busy && (*nand_num < 2)){
             *n_w_busy = 1;
             *n_empty  = 0;
         }
