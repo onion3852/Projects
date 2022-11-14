@@ -31,14 +31,14 @@ int main(void)
     FILE * fp;
 
     // empty
-    int pcieq_empty;
-    int sramq_empty;
-    int dramq_empty;
-    int nandq_empty;
+    int pcieq_empty = 1;
+    int sramq_empty = 1;
+    int dramq_empty = 1;
+    int nandq_empty = 1;
     // busy
-    int sram_w_busy;
-    int dram_w_busy;
-    int nand_w_busy;
+    int sram_w_busy = 0;
+    int dram_w_busy = 0;
+    int nand_w_busy = 0;
 
     // array of each device
     int sram[3] = {0, 0, 0};
@@ -66,24 +66,24 @@ int main(void)
     printf("time is %d\n", time);
     printf("global time is %d\n", global_time);
     printf("%d, %d, %d\n", sram[0], sram[1], sram[2]);
+    printf("sram busy is %d\n", sram_w_busy);
+    printf("sram_num is %d\n", sram_num);
+    printf("sram[sram_num] is %d\n", sram[sram_num]);
 
-    while (!pcieq_empty || !sramq_empty || !dramq_empty || !nandq_empty || sram_w_busy || dram_w_busy || nand_w_busy)
+    while (/*!pcieq_empty || !sramq_empty || !dramq_empty || !nandq_empty || sram_w_busy || dram_w_busy || nand_w_busy*/time < 4100)
     {
-        process_pcieq(time, global_time, pcieq_empty, sramq_empty, sram_w_busy, sram_num, &sram[sram_num], file_num, &file[file_num]);
+        printf("--------------------\n");
+        printf("file_num is %d\n", file_num);
+        printf("sram_num is %d\n", sram_num);
+        printf("sram[sram_num] is %d\n", sram[sram_num]);
+        printf("time is %d\n", time);
+        printf("--------------------\n\n\n");
+        process_pcieq(time, global_time, pcieq_empty, sramq_empty, sram_w_busy, sram_num, sram, file_num, &file[file_num]);
       //process_sramq(time, global_time, sram_w_busy, sram_num, sram[sram_num], file_num, &file[file_num]);
       //process_dramq();
       //process_nandq();
-
-        
-
         time++;
     }
-    
-    printf("global time is %d ns\n", global_time);
-    printf("--------------------\n\n");
-    printf("time is %d\n", time);
-    printf("global time is %d\n", global_time);
-    printf("%d, %d, %d\n", sram[0], sram[1], sram[2]);
 
     return 0;
 }
@@ -95,6 +95,7 @@ void process_pcieq(int time, int global_time, int p_empty, int s_empty, int w_bu
     if(w_busy && (time >= sram[sram_num])){
         // sram write done...
         // clear pcieq of completed request
+        printf("file 1 is %d, %d, %d, %d\n", q->name, q->w_r, q->size, q->t_arrival);
         if(file_num <= 2){
             q -> name      = 0;
             q -> w_r       = 0;
@@ -108,10 +109,20 @@ void process_pcieq(int time, int global_time, int p_empty, int s_empty, int w_bu
 
             // clear sram array of completed request 
             *sram = 0;
+            printf("file_num is %d\n", file_num);
+            printf("file 1 is %d, %d, %d, %d\n", q->name, q->w_r, q->size, q->t_arrival);
+            return;
         }
+        printf("first condition!!!\n");
         return;
     }
-    if(!w_busy){
+    else if(w_busy && (time < sram[sram_num])){
+        printf("second condition!!!\n");
+        printf("sram[sram_num]is %d\n", sram[sram_num]);
+        return;
+    }
+    else if(!w_busy){
+        printf("third condition is running!!!\n");
         if((file_num <= 2)){
             // start sram write for next file
             // sramq becomes not empty
