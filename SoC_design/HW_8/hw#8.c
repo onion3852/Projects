@@ -18,14 +18,15 @@ void process_sramq(int time, int *global_time, int *s_empty, int *d_empty, int *
 void process_dramq(int time, int *global_time, int *d_empty, int *n_empty, int *d_w_busy, int *n_w_busy,
                    int *dram_num, int *dram, int *nand_num, int *nand);
 
-//void process_nandq();
+void process_nandq(int time, int *global_time, int *n_empty, int *n_w_busy, int *nand_num, int *nand);
                    
 // main
 int main(void)
 {
     // time
-    int global_time = 0;
-    int time        = 0;
+    int time               = 0;
+    int global_time        = 0;
+    int arr_global_time[12] = {0,};
     
     int file_num = 0;
     int sram_num = 0;
@@ -46,7 +47,7 @@ int main(void)
     int dram_w_busy = 0;
     int nand_w_busy = 0;
 
-    // array of writting end time for each device
+    // array of 'writting task end time' for each device
     int sram[3] = {0, 0, 0};
     int dram[3] = {0, 0, 0};
     int nand[3] = {0, 0, 0};
@@ -67,29 +68,54 @@ int main(void)
         // set global time when host_request arrives
         time        = file[i].t_arrival;
         global_time = time;
+
+        // global time changes when any task is done
+        // storing every global time value in array
+        if(global_time > arr_global_time[11]){
+            for(int k = 0; k < 11; k++){
+                arr_global_time[k] = arr_global_time[k + 1];
+            }
+            arr_global_time[11] = global_time;
+        }
     }
     fclose(fp);
 
-    // 
-    while (time < 17346)
+    while (time < 20346)
     {
         printf("while loop start !\n");
         printf("current time is %d\n", time);
         printf("--------------------\n\n");
         printf("process_check function start !\n");
         printf("nandq is %d, %d, %d\n", nand[0], nand[1], nand[2]);
+
         process_pcieq(time, &global_time, &pcieq_empty, &sramq_empty, &sram_w_busy, 
                       &sram_num, sram, &file_num, &file[file_num]);
+
         process_sramq(time, &global_time, &sramq_empty, &dramq_empty, &sram_w_busy, &dram_w_busy, 
                       &sram_num, sram, &dram_num, dram);
                       
         process_dramq(time, &global_time, &dramq_empty, &nandq_empty, &dram_w_busy, &nand_w_busy,
                       &dram_num, dram, &nand_num, nand);
-      //process_nandq();
+
+        process_nandq(time, &global_time, &nandq_empty, &nand_w_busy, &nand_num, nand);
+
+        // global time changes when any task is done
+        // storing every global time value in array
+        if(global_time > arr_global_time[11]){
+            for(int k = 0; k < 11; k++){
+                arr_global_time[k] = arr_global_time[k + 1];
+            }
+            arr_global_time[11] = global_time;
+        }
+        
         time++;
     }
-    printf("global time : %d\n", global_time);
-    printf("");
+    printf("global time : %d\n\n", global_time);
+    printf("every global time value is\n");
+    for(int i = 0; i < 12; i++){
+        printf("%d ns\n", arr_global_time[i]);
+    }
+
     return 0;
 }
 
@@ -129,6 +155,7 @@ void process_pcieq(int time, int *global_time, int *p_empty, int *s_empty, int *
             *p_empty = 1;
         }
     }
+
     return;
 }
 
@@ -167,6 +194,7 @@ void process_sramq(int time, int *global_time, int *s_empty, int *d_empty, int *
         printf("DRAM writting for file[%d] is in progress!!!\n", *dram_num);
         printf("DRAM writting for file[%d] end time is %d / current time is %d\n", *dram_num, dram[*dram_num], time);
     }
+
     return;
 }
 
@@ -200,14 +228,46 @@ void process_dramq(int time, int *global_time, int *d_empty, int *n_empty, int *
         // nand write end time array can be defined
         if(*dram_num == 3){
             for(int k = 0; k < 3; k++){
-                nand[k] = time + ((k + 1) * t_NAND_W);
+                nand[k] = time + ((k + 1) *100/*t_NAND_W*/);
             }
+            // nand write will start
+            *n_w_busy = 1;
         }
     }
+
     return;
 }
 
-void process_nandq()
+void process_nandq(int time, int *global_time, int *n_empty, int *n_w_busy, int *nand_num, int *nand)
 {
-    
+    if(*n_w_busy && (time < nand[*nand_num]) && (*nand_num <= 2)){
+        // nand writting is in progress
+        printf("NAND writting for file[%d] is in progress!!!\n", *nand_num);
+        printf("NAND writting for file[%d] end time is %d / current time is %d\n", *nand_num, nand[*nand_num], time);
+    }
+    else if(*n_w_busy && (time == nand[*nand_num])){
+        // nand write done, nandq is empty and write port isn't busy now
+        printf("NAND write for file[%d] is done !\n", *nand_num);
+        *n_w_busy = 0;
+        *n_empty  = 1;
+        // if nand write tasks remain, nandq will not become empty
+        // and next file write will begin
+        if(!*n_w_busy && *nand_num < 2){
+            *n_w_busy = 1;
+            *n_empty  = 0;
+        }
+
+        // global time is changed to current time
+        *global_time = time;
+
+        // clear 'nand write end time' array of completed task
+        nand[*nand_num] = 0;
+        (*nand_num)++; 
+        if(*nand_num >= 3){
+            *n_w_busy = 0;
+            *n_empty  = 1;
+        }
+    }
+
+    return;
 }
